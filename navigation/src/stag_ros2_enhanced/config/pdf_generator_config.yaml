@@ -1,0 +1,39 @@
+# PDF Generator Configuration
+#
+# Configuration for generating printable PDF files with STag markers
+
+# Page size A4 in mm (do not change)
+page_width_mm: 210
+page_height_mm: 297
+
+# Margins from page edges (mm)
+page_margin: 0
+
+# Spacing between markers (mm)
+marker_margin: 0
+
+# Layout alignment: "top-left" or "center"
+# top-left: Align markers to top-left corner (easier for cutting)
+# center: Center markers on page (more aesthetically pleasing)
+alignment: "top-left"
+
+# Visual elements
+show_cut_lines: true      # Show dashed cut lines between markers
+show_marker_id: false      # Show marker ID (filename) below image
+
+# Cut line style
+cut_line_color: [0.7, 0.7, 0.7]  # RGB (gray)
+cut_line_width: 0.5               # Line width in points
+cut_line_dash: [2, 2]             # Dash pattern [dash length, gap length]
+
+# Font for marker ID
+font_name: "Helvetica"
+font_size: 6
+font_color: [0, 0, 0]  # RGB (black)
+
+# PDF metadata
+metadata:
+  author: "STag Marker Generator"
+  title: "STag Markers for Detection"
+  subject: "Fiducial markers for robotic localization"
+  creator: "stag_ros2_enhanced PDF generator"

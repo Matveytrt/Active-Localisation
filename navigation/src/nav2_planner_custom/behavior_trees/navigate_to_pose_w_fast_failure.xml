@@ -1,0 +1,59 @@
+<!--
+  navigate_to_pose_w_fast_failure.xml
+
+  Replans at 1 Hz. Two-level recovery, up to TWO full retries, then FAILURE.
+
+  HAPPY PATH:
+    ComputePathToPose (1 Hz via RateController) → FollowPath → goal reached
+
+  INLINE RECOVERY  (number_of_retries=5 each):
+    FollowPath fails    → ClearLocalCostmap  → retry FollowPath
+    ComputePath fails   → ClearGlobalCostmap → retry ComputePath
+
+  FULL RECOVERY  (triggered when inline recovery exhausted, ~6-7 s):
+    1. ClearLocalCostmap  + ClearGlobalCostmap  — remove stale lidar ghost points
+    2. Wait 2 s                                 — pause before relocalization maneuver
+    3. Spin +45° (left)                         — RTAB-Map re-localizes via STag markers
+    4. Spin -45° (right)                        — second observation from opposite heading
+    5. Wait 2 s                                 — localization and costmap settle
+    Then the whole navigation is retried.
+
+  number_of_retries="2" on NavigateRecovery:
+    2 full recovery attempts, then FAILURE (caller receives error).
+
+  GoalUpdated in ReactiveFallback: if a new goal arrives during full recovery,
+  recovery is preempted and navigation restarts toward the new goal.
+-->
+<root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <RecoveryNode number_of_retries="2" name="NavigateRecovery">
+      <PipelineSequence name="NavigateWithReplanning">
+        <RateController hz="1.0">
+          <RecoveryNode number_of_retries="5" name="ComputePathToPose">
+            <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/>
+            <ClearEntireCostmap name="ClearGlobalCostmap-Context"
+              service_name="global_costmap/clear_entirely_global_costmap"/>
+          </RecoveryNode>
+        </RateController>
+        <RecoveryNode number_of_retries="5" name="FollowPath">
+          <FollowPath path="{path}" controller_id="FollowPath"/>
+          <ClearEntireCostmap name="ClearLocalCostmap-Context"
+            service_name="local_costmap/clear_entirely_local_costmap"/>
+        </RecoveryNode>
+      </PipelineSequence>
+      <ReactiveFallback name="RecoveryFallback">
+        <GoalUpdated/>
+        <Sequence name="RecoveryActions">
+          <ClearEntireCostmap name="ClearLocalCostmap-Recovery"
+            service_name="local_costmap/clear_entirely_local_costmap"/>
+          <ClearEntireCostmap name="ClearGlobalCostmap-Recovery"
+            service_name="global_costmap/clear_entirely_global_costmap"/>
+          <Wait wait_duration="2.0"/>
+          <Spin spin_dist="0.785"/>
+          <Spin spin_dist="-0.785"/>
+          <Wait wait_duration="2.0"/>
+        </Sequence>
+      </ReactiveFallback>
+    </RecoveryNode>
+  </BehaviorTree>
+</root>

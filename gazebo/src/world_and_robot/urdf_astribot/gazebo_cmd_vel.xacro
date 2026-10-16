@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!--
+    Простое управление базой в Gazebo:
+    /cmd_vel -> движение base_link в плоскости + публикация odom/TF(odom->base_link).
+    Не требует wheel joints, поэтому подходит для текущего astribot URDF.
+  -->
+  <gazebo reference="astribot_torso_base">
+    <!-- Кинематический режим: исключаем наклон/падение от физики контактов -->
+    <kinematic>true</kinematic>
+    <gravity>false</gravity>
+    <selfCollide>false</selfCollide>
+  </gazebo>
+
+  <gazebo>
+    <plugin name="astribot_planar_move" filename="libgazebo_ros_planar_move.so">
+      <ros>
+        <namespace>/</namespace>
+      </ros>
+      <command_topic>cmd_vel</command_topic>
+      <odometry_topic>odom</odometry_topic>
+      <odometry_frame>odom</odometry_frame>
+      <robot_base_frame>base_link</robot_base_frame>
+
+      <publish_odom>true</publish_odom>
+      <publish_odom_tf>true</publish_odom_tf>
+      <!-- Частота /odom и TF odom->base_link (по умолчанию 20 Гц): при 20 Гц
+           робот в RViz движется рывками, хотя в Gazebo плавно. -->
+      <publish_rate>50</publish_rate>
+    </plugin>
+  </gazebo>
+
+</robot>

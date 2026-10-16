@@ -1,0 +1,68 @@
+<!--
+  navigate_to_pose_w_fast_failure_v2.xml
+
+  Fast-fail при закрытом проходе. Работает вместе с obstacle_layer в
+  global_costmap: планировщик честно видит новое препятствие и
+  ComputePathToPose реально фейлится, вместо бесконечных попыток по слепой
+  статической карте.
+
+  Replans at 1 Hz.
+
+  HAPPY PATH:
+    ComputePathToPose (1 Hz via RateController) → FollowPath → goal reached
+
+  INLINE RECOVERY  (transparent, one retry each):
+    FollowPath fails    → ClearLocalCostmap  → retry FollowPath ONCE  (number_of_retries=1)
+    ComputePath fails   → ClearGlobalCostmap → retry ComputePath ONCE (number_of_retries=1)
+
+  FULL RECOVERY  (triggered when inline recovery exhausted):
+    1. ClearLocalCostmap + ClearGlobalCostmap — remove stale lidar ghost points
+    2. Wait 2 s                               — let costmap/localization settle
+    Затем ОДИН повтор всей навигации (number_of_retries="1" на NavigateRecovery).
+    Если снова неудача → FAILURE наверх.
+
+  Spin-манёвры релокализации из v1 УБРАНЫ: landmark-детекции сами
+  сбрасывают накопленную ошибку локализации, отдельный механизм не нужен.
+
+  Расчётный худший случай закрытого прохода (с obstacle_layer в global_costmap):
+  FollowPath (movement_time_allowance=3.0 с + clear + повтор ~3 с) → full recovery
+  (clear + Wait 2.0 с) → ComputePathToPose честно фейлится по obstacle-слою
+  (+ повтор ~3 с) → FAILURE наверх за ~10-14 с (было — до ~3 минут при 5/5/2
+  ретраях и слепой к препятствиям глобальной костмапе).
+
+  GoalUpdated in ReactiveFallback: if a new goal arrives during full recovery,
+  recovery is preempted and navigation restarts toward the new goal.
+
+  v1 (navigate_to_pose_w_fast_failure.xml, number_of_retries 2/5/5 + Spin)
+  оставлен для сравнения.
+-->
+<root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <RecoveryNode number_of_retries="1" name="NavigateRecovery">
+      <PipelineSequence name="NavigateWithReplanning">
+        <RateController hz="1.0">
+          <RecoveryNode number_of_retries="1" name="ComputePathToPose">
+            <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/>
+            <ClearEntireCostmap name="ClearGlobalCostmap-Context"
+              service_name="global_costmap/clear_entirely_global_costmap"/>
+          </RecoveryNode>
+        </RateController>
+        <RecoveryNode number_of_retries="1" name="FollowPath">
+          <FollowPath path="{path}" controller_id="FollowPath"/>
+          <ClearEntireCostmap name="ClearLocalCostmap-Context"
+            service_name="local_costmap/clear_entirely_local_costmap"/>
+        </RecoveryNode>
+      </PipelineSequence>
+      <ReactiveFallback name="RecoveryFallback">
+        <GoalUpdated/>
+        <Sequence name="RecoveryActions">
+          <ClearEntireCostmap name="ClearLocalCostmap-Recovery"
+            service_name="local_costmap/clear_entirely_local_costmap"/>
+          <ClearEntireCostmap name="ClearGlobalCostmap-Recovery"
+            service_name="global_costmap/clear_entirely_global_costmap"/>
+          <Wait wait_duration="2.0"/>
+        </Sequence>
+      </ReactiveFallback>
+    </RecoveryNode>
+  </BehaviorTree>
+</root>

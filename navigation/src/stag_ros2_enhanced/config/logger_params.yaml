@@ -1,0 +1,22 @@
+# Detection Logger Node Parameters
+
+/**:
+  ros__parameters:
+    
+    # ===== Log File Configuration =====
+    # Path to detection log file (JSONL format)
+    # Can be absolute or relative (resolved against the node's working directory)
+    # Supports ~ expansion for home directory
+    # stag_detector_with_logging.launch.py overrides this with its log_file_path argument
+    log_file_path: 'detections.jsonl'
+    
+    # ===== Subscription Topics =====
+    # Markers topic to subscribe to (usually from detector node)
+    markers_topic: '/stag_detector/markers'
+    
+    # ===== Logging Options =====
+    # Include additional metadata in log entries (num_markers)
+    include_metadata: false
+    
+    # Automatically create directories if they don't exist
+    auto_create_dirs: true

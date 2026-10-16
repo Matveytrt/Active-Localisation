@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<robot name="astribot_whole_body" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:include filename="astribot_whole_body_with_head.urdf"/>
+  <xacro:include filename="lidar_front.xacro"/>
+  <xacro:include filename="lidar_back.xacro"/>
+  <xacro:include filename="torso_rgbd.xacro"/>
+  <xacro:include filename="gazebo_cmd_vel.xacro"/>
+
+</robot>

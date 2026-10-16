@@ -1,0 +1,69 @@
+# STag Detector Node Parameters
+#
+# stag_detector_launch: read only by stag_detector.launch.py (static_transform_publisher).
+# For two detectors: distinct static_tf_child_frame (and parent if two cameras) per config.
+
+stag_detector_launch:
+  static_tf_parent_frame: "torso_rgbd"
+  static_tf_child_frame: "camera_optical_frame_hd15"
+
+/**:
+  ros__parameters:
+    
+    # ===== Image Topics =====
+    image_topic: "/torso_rgbd/image_raw"
+    camera_info_topic: "/torso_rgbd/camera_info"
+    
+    # ===== Detection Parameters =====
+    # Marker type: HD17, HG13, HC21, HO17, etc.
+    marker_type: 'HD15'
+    
+    # Error correction level (-1 for auto/maximum)
+    error_correction: -1
+    
+    # Proximity threshold for HC marker centroid matching (pixels)
+    # Only used for HC markers - determines maximum distance between channel detections
+    proximity_threshold: 10.0
+    
+    # ===== Marker Physical Properties =====
+    # Marker size in meters (required only for TF broadcasting and visualization labels)
+    # Set to 0.0 if not needed (detection works without it)
+    marker_size: 0.06
+    
+    # ===== Visualization =====
+    # Publish detection visualization image
+    show_detection: true
+    
+    # Topic for detection visualization (distinct leaf when running multiple detectors)
+    detection_image_topic: '~/detection_image_hd15'
+    
+    # Show rejected marker candidates in visualization
+    show_rejected: false
+    
+    # ===== TF Broadcasting =====
+    # Enable TF broadcasting for detected markers (requires marker_size > 0 and camera_info)
+    # Requires correct camera_info and marker_size; enabled because the simulation camera is ideal
+    publish_tf: true
+    
+    # Camera frame for TF parent
+    camera_frame: "torso_rgbd"
+    
+    # Prefix for marker frame names (e.g., stag_hd15_0, stag_hd15_1)
+    marker_frame_prefix: 'stag_hd15_'
+    
+    # ===== Marker Tracking =====
+    # Enable marker tracking for stable detections
+    enable_marker_tracking: true
+    
+    # Distance threshold for duplicate detection filtering (pixels)
+    tracking_distance_threshold: 10.0
+    
+    # Timeout for marker detection history (seconds)
+    tracking_timeout: 0.5
+    
+    # ===== Statistics =====
+    # Log detection statistics (FPS, avg time) to the console; nothing is published on ~/statistics
+    publish_statistics: true
+    
+    # Statistics update rate (Hz)
+    statistics_update_rate: 1.0

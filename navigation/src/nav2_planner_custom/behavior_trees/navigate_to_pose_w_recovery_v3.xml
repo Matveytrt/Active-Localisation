@@ -1,0 +1,131 @@
+<!--
+  navigate_to_pose_w_recovery_v3.xml
+
+  Робастное восстановление при ПОТЕРЕ ЛОКАЛИЗАЦИИ, сохраняя fast-fail на
+  реально перекрытом проходе. Заменяет navigate_to_pose_w_fast_failure_v2.xml.
+  v1 и v2 оставлены как альтернативы: переключение — имя файла в
+  bt_navigator.default_nav_to_pose_bt_xml.
+
+  ПРОБЛЕМА
+  ========
+  При скачке локализации (наблюдался скачок +1.42 м по y за 3.5 с под нагрузкой CPU)
+  старт робота попадает в lethal-ячейку, и ThetaStar честно отвечает
+  "Could not generate path between the given poses" ещё до поиска пути.
+  Лечится это ВРЕМЕНЕМ (RTAB-Map доносит коррекцию по маркерам), а не клиром
+  костмапы: ClearEntireCostmap не трогает static_layer — при reset() он просто
+  перечитывает карту, так что если footprint оказался внутри стены статической
+  карты, клир по определению no-op.
+
+  В v2 повтор ComputePathToPose уходил через ~37 мс после клира, а
+  global_costmap.update_frequency = 1.0 Гц — костмапа физически не успевала
+  обновиться ни разу. Любое восстановление без выдержки было холостым.
+
+  ПРИНЦИПЫ v3
+  ===========
+  1. ВЫДЕРЖКА (dwell). После каждого клира — Wait не меньше одного периода
+     соответствующей костмапы: 1.0 с для global (1 Гц), 0.3 с для local (5 Гц).
+     Без этого повтор гарантированно смотрит в ту же самую карту.
+
+  2. ЭСКАЛАЦИЯ вместо повтора одного и того же. RoundRobin проходит ступени
+     по очереди: дёшево -> разворот -> глубокий клир. В v2 каждое вхождение
+     в recovery делало одно и то же (clear/clear/Wait).
+
+  3. ХИРУРГИЧЕСКИЕ КЛИРЫ. ClearCostmapAroundRobot убирает фантомную
+     lethal-ячейку под роботом, не выбрасывая метки obstacle_layer вдали —
+     а именно они (obstacle_layer в global_costmap) дают честный быстрый
+     отказ на закрытом проходе.
+     Полный клир остаётся только на последней ступени.
+     ВНИМАНИЕ: reset_distance это СТОРОНА КВАДРАТА, центрированного на роботе,
+     а не радиус (docs.nav2.org, bt-plugins/actions/ClearCostmapAroundRobot).
+     3.0 = +-1.5 м от центра. Меньше нельзя: половина footprint ~0.375 м плюс
+     inflation_radius 0.5 дают 0.875 м, то есть сторона минимум 1.75 — иначе
+     раздутое препятствие под роботом переживёт клир и повтор плана снова
+     упрётся в lethal-ячейку. Узел есть начиная с Foxy, в Humble доступен.
+
+  4. У ПЛАНИРОВЩИКА НЕТ inline-recovery. Отказ ComputePathToPose сразу идёт
+     в лестницу. В v2 inline-ветка (clear+повтор) съедала бюджет впустую и
+     до Spin дело не доходило вовсе. Единственное место с логикой
+     восстановления — лестница.
+
+  5. ДЕРЕВО НАМЕРЕННО ЩЕДРОЕ (number_of_retries=3): ограничивать время
+     восстановления рассчитано внешнему клиенту навигации (~5 с без
+     прогресса). При цели из RViz такого клиента нет, и цель обрывается
+     после трёх проходов лестницы.
+
+  ТАЙМИНГ ЛЕСТНИЦЫ (behavior_server.max_rotational_vel = 0.3 рад/с!)
+  =================================================================
+    t=0.0  ComputePathToPose FAILURE
+    t=0.0  R1: clear around (local+global) + Wait 1.0      -> t~1.1
+    t=1.1  повтор плана (планировщик падает за 0.3-0.9 с)  -> t~1.5
+    t=1.5  R2: Spin 30 град (0.524 рад @ 0.3 рад/с ~ 2.4 с) + Wait 0.5 -> t~4.4
+    t=4.4  повтор плана -> t~4.8  <- сюда обычно и успевает восстановление
+  R3 — страховка на случай, когда Spin отказал (близко препятствие) и
+  ступень прошла мгновенно.
+  Spin 30, а не 45 град, ровно из-за max_rotational_vel = 0.3: 45 град это
+  ~3.4 с и восстановление не укладывается в ~5 с. Если поднять
+  max_rotational_vel до 0.5 — можно вернуть spin_dist=0.785.
+
+  GoalUpdated в ReactiveFallback: новая цель во время recovery прерывает
+  восстановление и навигация перезапускается на новую цель.
+-->
+<root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <RecoveryNode number_of_retries="3" name="NavigateRecovery">
+      <PipelineSequence name="NavigateWithReplanning">
+        <!-- Планировщик без inline-recovery: любой отказ сразу в лестницу (принцип 4). -->
+        <RateController hz="1.0">
+          <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/>
+        </RateController>
+
+        <!-- У контроллера inline-recovery остаётся: local_costmap живёт на 5 Гц,
+             клир вокруг робота + 0.3 с дёшевы и снимают призраки лидара. -->
+        <RecoveryNode number_of_retries="1" name="FollowPath">
+          <FollowPath path="{path}" controller_id="FollowPath"/>
+          <Sequence name="ClearLocalAndSettle">
+            <ClearCostmapAroundRobot name="ClearLocalAroundRobot-Context"
+              service_name="local_costmap/clear_around_local_costmap"
+              reset_distance="3.0"/>
+            <Wait wait_duration="0.3"/>
+          </Sequence>
+        </RecoveryNode>
+      </PipelineSequence>
+
+      <ReactiveFallback name="RecoveryFallback">
+        <GoalUpdated/>
+        <RoundRobin name="RecoveryLadder">
+
+          <!-- R1 (~1.1 с): дешёвая ступень. Снимает фантомную lethal-ячейку под
+               роботом и даёт global_costmap ровно один цикл обновления. -->
+          <Sequence name="R1-ClearAndSettle">
+            <ClearCostmapAroundRobot name="ClearLocalAroundRobot-R1"
+              service_name="local_costmap/clear_around_local_costmap"
+              reset_distance="3.0"/>
+            <ClearCostmapAroundRobot name="ClearGlobalAroundRobot-R1"
+              service_name="global_costmap/clear_around_global_costmap"
+              reset_distance="3.0"/>
+            <Wait wait_duration="1.0"/>
+          </Sequence>
+
+          <!-- R2 (~2.9 с): релокализация. Spin работает от odom, качество
+               локализации ему не нужно; поворот даёт STag-детектору новый ракурс,
+               и RTAB-Map схлопывает накопленную ошибку по маркерам. -->
+          <Sequence name="R2-Relocalize">
+            <Spin spin_dist="0.524" time_allowance="4.0"/>
+            <Wait wait_duration="0.5"/>
+          </Sequence>
+
+          <!-- R3 (~1.1 с): глубокий клир. Последнее средство — выбрасывает и
+               метки obstacle_layer, поэтому только здесь. -->
+          <Sequence name="R3-DeepClear">
+            <ClearEntireCostmap name="ClearLocalCostmap-R3"
+              service_name="local_costmap/clear_entirely_local_costmap"/>
+            <ClearEntireCostmap name="ClearGlobalCostmap-R3"
+              service_name="global_costmap/clear_entirely_global_costmap"/>
+            <Wait wait_duration="1.0"/>
+          </Sequence>
+
+        </RoundRobin>
+      </ReactiveFallback>
+    </RecoveryNode>
+  </BehaviorTree>
+</root>

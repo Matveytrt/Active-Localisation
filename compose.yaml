@@ -1,0 +1,8 @@
+# Запуск всей системы из корня: docker compose up -d --build
+# Каждый модуль можно запускать и отдельно из его папки (cd gazebo && docker compose up -d --build).
+# Требуется Docker Compose >= 2.20.3 (поддержка include).
+name: active-localization
+
+include:
+  - path: ./gazebo/docker-compose.yml
+  - path: ./navigation/docker-compose.yml

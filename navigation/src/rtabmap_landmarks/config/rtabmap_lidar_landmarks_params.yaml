@@ -1,0 +1,150 @@
+# RTAB-Map: lidar + fiducial landmarks (симуляция Astribot в Gazebo)
+# Этот файл — единственный источник параметров алгоритма.
+# launch-файл читает только секцию launch_config для ремаппингов и runtime-настроек.
+
+
+# ── Runtime-конфиг для launch-файла (НЕ передаётся ноде напрямую) ─────────────
+launch_config:
+  ros__parameters:
+    # Объединённое облако переднего и заднего лидаров (lidar_stitching в модуле gazebo)
+    lidar_topic: '/lidar/points_joined'
+    odom_topic: '/odom'
+    landmark_detections_topic: '/landmark_detections'
+    rtabmap_map_topic: '/map'
+    database_path: '/home/app/ros2_ws/maps/astribot_sim.db'
+    # Режим по умолчанию; переопределяется аргументом launch localization:=true|false
+    localization: false
+    # Удалять карту при старте картирования (аргумент delete_db_on_start:=true).
+    # В режиме локализации игнорируется.
+    delete_db_on_start: false
+
+    # Параметры RTAB-Map, которые различаются между картированием и локализацией.
+    # launch передаёт ноде одну из двух секций в зависимости от режима.
+    mapping_params:
+      Mem/IncrementalMemory: 'true'
+      Mem/InitWMWithAllNodes: 'false'
+      Mem/LocalizationDataSaved: 'false'
+      RGBD/CreateOccupancyGrid: 'true'
+      # Для /cloud_map нужен 3D local grid, иначе облако будет сплющено в плоскость.
+      Grid/3D: 'true'
+    localization_params:
+      Mem/IncrementalMemory: 'false'
+      Mem/InitWMWithAllNodes: 'true'
+      Mem/LocalizationDataSaved: 'true'
+      # Карта уже построена: локальные сетки новых узлов не нужны
+      RGBD/CreateOccupancyGrid: 'false'
+      Grid/3D: 'false'
+
+# ── Общие параметры (применяются ко всем RTAB-Map нодам) ──────────────────────
+/**:
+  ros__parameters:
+    # Симуляция: время из /clock
+    use_sim_time: true
+    wait_for_transform: 0.8
+
+    Rtabmap/DetectionRate: "5"
+    # ICP (Iterative Closest Point)
+    Icp/PointToPlane: 'true'
+    Icp/Iterations: '10'
+    Icp/VoxelSize: '0.1'
+    Icp/Epsilon: '0.001'
+    Icp/PointToPlaneK: '20'
+    Icp/PointToPlaneRadius: '0'
+    Icp/Strategy: '1'
+    # Доверие к лидару (ICP): выше = мягче к выбросам, ниже = строже соответствиям.
+    Icp/OutlierRatio: '0.7'
+    # Дефолт 0.1 м == Icp/VoxelSize: соответствия дальше одного вокселя
+    # отбрасывались — при умеренном дрейфе одометрии proximity-ICP не сходился,
+    # петли не закрывались. 1.0 м ~ upstream-демо (husky_slam3d, ~10x voxel).
+    Icp/MaxCorrespondenceDistance: '1.0'
+
+    # Подписки: только лидар + одометрия + ландмарки, камера в RTAB-Map не идёт
+    subscribe_depth: false
+    subscribe_rgb: false
+    subscribe_odom_info: false
+    subscribe_scan_cloud: true
+    # PointCloud2 с лидара обрабатываем как 3D (не проецировать в 2D scan).
+    scan_cloud_is_2d: false
+    subscribe_rgbd: false
+    rgbd_cameras: 0
+
+    # Фреймы
+    map_frame_id: 'map'
+    frame_id: 'base_link'
+
+    # Синхронизация и QoS
+    odom_sensor_sync: false
+    topic_queue_size: 50
+    sync_queue_size: 50
+    approx_sync: true
+    approx_sync_max_interval: 0.1 # секунды
+    qos: 2
+
+    # Доверие к одометрии (0.001 = высокое, 0.1 = умеренное).
+    # odom_tf_* применяются только когда rtabmap берёт одометрию из TF.
+    # У нас одометрия приходит топиком (odom_topic выше) — эти два параметра
+    # ни на что не влияют, используются ковариации из сообщения /odom.
+    odom_tf_linear_variance: 0.1
+    odom_tf_angular_variance: 0.1
+
+    # Режим построения карты (RGBD/CreateOccupancyGrid задаётся в launch_config по режиму)
+    RGBD/AngularUpdate: '0.0'
+    RGBD/LinearUpdate: '0.0'
+    RGBD/ProximityMaxGraphDepth: '0'
+    RGBD/ProximityPathMaxNeighbors: '1'
+
+    # Оптимизация графа
+    RGBD/OptimizeFromGraphEnd: 'false'
+    # Жестко ограничиваем оптимизацию графа в 2D (x,y,yaw), без roll/pitch/z.
+    RGBD/OptimizeSlam2d: 'true'
+    RGBD/OptimizeMaxError: '3.0'
+    RGBD/StartAtOrigin: 'false'
+    Optimizer/Robust: 'true'
+
+    # Память (Mem/IncrementalMemory и др. задаются в launch_config по режиму)
+    Mem/NotLinkedNodesKept: 'false'
+    Mem/STMSize: '30'
+
+    # Регистрация: ICP только (Strategy=1), 2D (Force3DoF)
+    Reg/Strategy: '1'
+    Reg/Force3DoF: 'true'
+
+    # Loop closure: lidar-only режим, изображений нет.
+    # Kp/MaxFeatures: '-1' = no extraction — отключает visual feature extraction
+    # ('0' означает "без лимита числа фич", а не отключение).
+    # Loop closures находятся через proximity (ICP), а не через visual BoW.
+    Kp/MaxFeatures: '-1'
+    RGBD/LoopClosureIdentityGuess: 'false'
+    RGBD/LoopClosureReextractFeatures: 'false'
+
+    # Landmarks: позиции доверяем, углу — меньше (STag ориентация шумит).
+    # landmark_angular_variance < 9999.0 обязательно: при 9999 GTSAM считает
+    # маркер "без ориентации" и Optimizer/Robust отказывает (OptimizerGTSAM.cpp:519).
+    # 1.0 рад² ≈ 57° std dev — высокая неопределённость, но GTSAM работает.
+    #
+    # landmark_linear_variance: вес ограничения = 1/variance.
+    # 0.01 (вес 100) → слишком сильно тянет оценку при каждой 10-Гц детекции → map→odom дрожит.
+    # 0.05 (вес 20) → шумные детекции (~2 см) почти не сдвигают оценку,
+    #                 накопленный эффект многих сэмплов всё равно корректирует дрейф.
+    landmark_linear_variance: 0.05
+    landmark_angular_variance: 1.0
+
+    # Occupancy grid (2D карта); высоты — относительно base_link
+    # (Grid/MapFrameProjection: false). Пол в симуляции на z ≈ -0.16.
+    Grid/MinGroundHeight: '-0.5'
+    Grid/MaxGroundHeight: '-0.05'
+    Grid/MaxObstacleHeight: '1.75'
+    Grid/RangeMin: '0.45'
+    Grid/RangeMax: '5.0'
+    Grid/FootprintRadius: '0.45'
+    Grid/RayTracing: 'true'
+    Grid/Sensor: '0'
+    # Не проецировать точки на плоскость map frame при формировании 3D cloud.
+    Grid/MapFrameProjection: 'false'
+    Grid/ScanDecimation: '1'
+    Grid/NormalsSegmentation: 'false'
+    Grid/CellSize: '0.05'
+    GridGlobal/ProbHit: '0.65'
+    GridGlobal/ProbMiss: '0.45'
+    GridGlobal/OccupancyThr: '0.5'
+    GridGlobal/UnknownSpaceFilled: 'false'

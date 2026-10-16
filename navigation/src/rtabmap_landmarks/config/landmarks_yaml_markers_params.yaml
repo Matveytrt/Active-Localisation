@@ -1,0 +1,14 @@
+landmarks_yaml_markers:
+  ros__parameters:
+    # Симуляция: штампы маркеров во времени /clock, иначе RViz их не покажет
+    use_sim_time: true
+    # Файл в src (смонтирован в контейнер) — правки видны без пересборки
+    landmarks_yaml_path: "/home/app/ros2_ws/src/rtabmap_landmarks/config/landmarks.yaml"
+    marker_topic: "/visualization_marker_array"
+    publish_rate_hz: 1.0
+    arrow_length: 0.35
+    arrow_shaft_diameter: 0.08
+    arrow_head_diameter: 0.12
+    sphere_diameter: 0.07
+    namespace: "big_landmarks"
+    alpha: 0.95

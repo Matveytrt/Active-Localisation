@@ -1,0 +1,64 @@
+# Общие правила для всего репозитория. Специфичные для модулей — в конце файла.
+
+# ROS2 / colcon (на случай сборки на хосте, в корне или в папке модуля)
+build/
+install/
+log/
+.ros/
+
+# Артефакты CMake при сборке вне build/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+
+# Скомпилированные файлы
+*.o
+*.so
+*.a
+
+# Логи сборки Docker и запуска: хранятся в logs/, в git попадает только сама папка
+logs/*
+!logs/.gitkeep
+*.log
+
+# Записи rosbag
+*.bag
+*.bag.active
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+.pytest_cache/
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Временные файлы
+*.tmp
+*.bak
+*.cache
+.bash_history
+
+# Переменные окружения
+.env
+.env.local
+
+# navigation: базы карт RTAB-Map (сотни МБ, создаются картированием)
+navigation/maps/*.db
+
+# gazebo: траектории, которые пишет pose_saver_plugin
+gazebo/src/world_and_robot/robot_poses/*.tum

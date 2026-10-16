@@ -1,0 +1,8 @@
+# Параметры узла /gazebo (плагин gazebo_ros_init), передаются в gzserver
+# через params_file из gazebo_sim.launch.py.
+gazebo:
+  ros__parameters:
+    # Частота /clock (по умолчанию 10 Гц). Все узлы с use_sim_time видят время
+    # с этим шагом: RViz отрисовывает TF рывками, таймеры чаще 10 Гц
+    # (Nav2, RTAB-Map) срабатывают не чаще публикации /clock.
+    publish_rate: 100.0

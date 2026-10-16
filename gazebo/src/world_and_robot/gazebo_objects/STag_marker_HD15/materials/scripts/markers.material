@@ -1,0 +1,162 @@
+material STagMarkerHD15/marker_00000 {
+  technique { pass {
+    ambient 1 1 1 1
+    diffuse 1 1 1 1
+    specular 0 0 0 1
+    lighting off
+    texture_unit { texture hd15_00000.png }
+  } }
+}
+material STagMarkerHD15/marker_00001 {
+  technique { pass {
+    ambient 1 1 1 1
+    diffuse 1 1 1 1
+    specular 0 0 0 1
+    lighting off
+    texture_unit { texture hd15_00001.png }
+  } }
+}
+material STagMarkerHD15/marker_00002 {
+  technique { pass {
+    ambient 1 1 1 1
+    diffuse 1 1 1 1
+    specular 0 0 0 1
+    lighting off
+    texture_unit { texture hd15_00002.png }
+  } }
+}
+material STagMarkerHD15/marker_00003 {
+  technique { pass {
+    ambient 1 1 1 1
+    diffuse 1 1 1 1
+    specular 0 0 0 1
+    lighting off
+    texture_unit { texture hd15_00003.png }
+  } }
+}
+material STagMarkerHD15/marker_00004 {
+  technique { pass {
+    ambient 1 1 1 1
+    diffuse 1 1 1 1
+    specular 0 0 0 1
+    lighting off
+    texture_unit { texture hd15_00004.png }
+  } }
+}
+material STagMarkerHD15/marker_00005 {
+  technique { pass {
+    ambient 1 1 1 1
+    diffuse 1 1 1 1
+    specular 0 0 0 1
+    lighting off
+    texture_unit { texture hd15_00005.png }
+  } }
+}
+material STagMarkerHD15/marker_00006 {
+  technique { pass {
+    ambient 1 1 1 1
+    diffuse 1 1 1 1
+    specular 0 0 0 1
+    lighting off
+    texture_unit { texture hd15_00006.png }
+  } }
+}
+material STagMarkerHD15/marker_00007 {
+  technique { pass {
+    ambient 1 1 1 1
+    diffuse 1 1 1 1
+    specular 0 0 0 1
+    lighting off
+    texture_unit { texture hd15_00007.png }
+  } }
+}
+material STagMarkerHD15/marker_00008 {
+  technique { pass {
+    ambient 1 1 1 1
+    diffuse 1 1 1 1
+    specular 0 0 0 1
+    lighting off
+    texture_unit { texture hd15_00008.png }
+  } }
+}
+material STagMarkerHD15/marker_00009 {
+  technique { pass {
+    ambient 1 1 1 1
+    diffuse 1 1 1 1
+    specular 0 0 0 1
+    lighting off
+    texture_unit { texture hd15_00009.png }
+  } }
+}
+material STagMarkerHD15/marker_00010 {
+  technique { pass {
+    ambient 1 1 1 1
+    diffuse 1 1 1 1
+    specular 0 0 0 1
+    lighting off
+    texture_unit { texture hd15_00010.png }
+  } }
+}
+material STagMarkerHD15/marker_00011 {
+  technique { pass {
+    ambient 1 1 1 1
+    diffuse 1 1 1 1
+    specular 0 0 0 1
+    lighting off
+    texture_unit { texture hd15_00011.png }
+  } }
+}
+material STagMarkerHD15/marker_00012 {
+  technique { pass {
+    ambient 1 1 1 1
+    diffuse 1 1 1 1
+    specular 0 0 0 1
+    lighting off
+    texture_unit { texture hd15_00012.png }
+  } }
+}
+material STagMarkerHD15/marker_00013 {
+  technique { pass {
+    ambient 1 1 1 1
+    diffuse 1 1 1 1
+    specular 0 0 0 1
+    lighting off
+    texture_unit { texture hd15_00013.png }
+  } }
+}
+material STagMarkerHD15/marker_00014 {
+  technique { pass {
+    ambient 1 1 1 1
+    diffuse 1 1 1 1
+    specular 0 0 0 1
+    lighting off
+    texture_unit { texture hd15_00014.png }
+  } }
+}
+material STagMarkerHD15/marker_00015 {
+  technique { pass {
+    ambient 1 1 1 1
+    diffuse 1 1 1 1
+    specular 0 0 0 1
+    lighting off
+    texture_unit { texture hd15_00015.png }
+  } }
+}
+material STagMarkerHD15/marker_00016 {
+  technique { pass {
+    ambient 1 1 1 1
+    diffuse 1 1 1 1
+    specular 0 0 0 1
+    lighting off
+    texture_unit { texture hd15_00016.png }
+  } }
+}
+material STagMarkerHD15/marker_00017 {
+  technique { pass {
+    ambient 1 1 1 1
+    diffuse 1 1 1 1
+    specular 0 0 0 1
+    lighting off
+    texture_unit { texture hd15_00017.png }
+  } }
+}

@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>stag_data_analyzer</name>
+  <version>0.1.0</version>
+  <description>Data analysis and visualization package for STag marker detection experiments</description>
+  <maintainer email="user@example.com">User</maintainer>
+  <license>MIT</license>
+
+  <depend>python3-yaml</depend>
+  <depend>python3-numpy</depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

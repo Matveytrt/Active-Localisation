@@ -1,0 +1,9 @@
+lidar_stitching_node:
+  ros__parameters:
+    lidar_topics:
+      - "/lidar_back/points"
+      - "/lidar_front/points"
+    use_motion_compensation: true
+    target_frame: "base_link"
+    output_topic: "/lidar/points_joined"
+    robot_filter_radius: 0.5  # Радиус фильтрации точек вокруг робота (метры). Точки в радиусе 0.5 м будут удалены.

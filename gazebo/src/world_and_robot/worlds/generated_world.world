@@ -1,0 +1,4001 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <world name="default">
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+    <include>
+      <uri>model://sun</uri>
+    </include>
+    <include>
+      <name>shelf_6_r1_c1</name>
+      <uri>model://shelf_6</uri>
+      <pose>-1.5 1.5 0.0 0 0 0</pose>
+    </include>
+    <model name="stag_r1c1_l1_m1">
+      <static>true</static>
+      <pose>-1.6 0.9 0.146 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00219</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c1_l1_m2">
+      <static>true</static>
+      <pose>-1.85 0.9 0.146 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00261</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c1_l1_m3">
+      <static>true</static>
+      <pose>-2.1 0.9 0.146 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00426</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c1_l1_m4">
+      <static>true</static>
+      <pose>-2.35 0.9 0.146 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00519</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c1_l1_m5">
+      <static>true</static>
+      <pose>-2.6 0.9 0.146 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00525</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c1_l2_m1">
+      <static>true</static>
+      <pose>-1.6 0.9 0.506 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00526</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c1_l2_m2">
+      <static>true</static>
+      <pose>-1.85 0.9 0.506 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00537</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c1_l2_m3">
+      <static>true</static>
+      <pose>-2.1 0.9 0.506 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00563</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c1_l2_m4">
+      <static>true</static>
+      <pose>-2.35 0.9 0.506 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00578</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c1_l2_m5">
+      <static>true</static>
+      <pose>-2.6 0.9 0.506 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00679</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c1_l3_m1">
+      <static>true</static>
+      <pose>-1.6 0.9 0.867 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00800</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c1_l3_m2">
+      <static>true</static>
+      <pose>-1.85 0.9 0.867 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00848</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c1_l3_m3">
+      <static>true</static>
+      <pose>-2.1 0.9 0.867 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01138</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c1_l3_m4">
+      <static>true</static>
+      <pose>-2.35 0.9 0.867 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01181</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c1_l3_m5">
+      <static>true</static>
+      <pose>-2.6 0.9 0.867 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01311</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c1_l4_m1">
+      <static>true</static>
+      <pose>-1.6 0.9 1.227 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01391</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c1_l4_m2">
+      <static>true</static>
+      <pose>-1.85 0.9 1.227 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01396</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c1_l4_m3">
+      <static>true</static>
+      <pose>-2.1 0.9 1.227 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01451</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c1_l4_m4">
+      <static>true</static>
+      <pose>-2.35 0.9 1.227 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01509</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c1_l4_m5">
+      <static>true</static>
+      <pose>-2.6 0.9 1.227 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01579</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c1_l5_m1">
+      <static>true</static>
+      <pose>-1.6 0.9 1.556 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01603</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c1_l5_m2">
+      <static>true</static>
+      <pose>-1.85 0.9 1.556 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01630</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c1_l5_m3">
+      <static>true</static>
+      <pose>-2.1 0.9 1.556 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01654</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c1_l5_m4">
+      <static>true</static>
+      <pose>-2.35 0.9 1.556 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01690</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c1_l5_m5">
+      <static>true</static>
+      <pose>-2.6 0.9 1.556 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01824</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c1_l6_m1">
+      <static>true</static>
+      <pose>-1.6 0.9 1.886 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01862</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c1_l6_m2">
+      <static>true</static>
+      <pose>-1.85 0.9 1.886 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01928</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c1_l6_m3">
+      <static>true</static>
+      <pose>-2.1 0.9 1.886 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01999</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c1_l6_m4">
+      <static>true</static>
+      <pose>-2.35 0.9 1.886 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02027</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c1_l6_m5">
+      <static>true</static>
+      <pose>-2.6 0.9 1.886 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02149</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <include>
+      <name>shelf_6_r1_c2</name>
+      <uri>model://shelf_6</uri>
+      <pose>1.5 1.5 0.0 0 0 0</pose>
+    </include>
+    <model name="stag_r1c2_l1_m1">
+      <static>true</static>
+      <pose>1.4 0.9 0.146 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02234</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c2_l1_m2">
+      <static>true</static>
+      <pose>1.15 0.9 0.146 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02269</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c2_l1_m3">
+      <static>true</static>
+      <pose>0.8999999999999999 0.9 0.146 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02275</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c2_l1_m4">
+      <static>true</static>
+      <pose>0.6499999999999999 0.9 0.146 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02288</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c2_l1_m5">
+      <static>true</static>
+      <pose>0.3999999999999999 0.9 0.146 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02346</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c2_l2_m1">
+      <static>true</static>
+      <pose>1.4 0.9 0.506 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02365</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c2_l2_m2">
+      <static>true</static>
+      <pose>1.15 0.9 0.506 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00219</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c2_l2_m3">
+      <static>true</static>
+      <pose>0.8999999999999999 0.9 0.506 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00261</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c2_l2_m4">
+      <static>true</static>
+      <pose>0.6499999999999999 0.9 0.506 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00426</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c2_l2_m5">
+      <static>true</static>
+      <pose>0.3999999999999999 0.9 0.506 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00519</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c2_l3_m1">
+      <static>true</static>
+      <pose>1.4 0.9 0.867 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00525</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c2_l3_m2">
+      <static>true</static>
+      <pose>1.15 0.9 0.867 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00526</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c2_l3_m3">
+      <static>true</static>
+      <pose>0.8999999999999999 0.9 0.867 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00537</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c2_l3_m4">
+      <static>true</static>
+      <pose>0.6499999999999999 0.9 0.867 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00563</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c2_l3_m5">
+      <static>true</static>
+      <pose>0.3999999999999999 0.9 0.867 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00578</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c2_l4_m1">
+      <static>true</static>
+      <pose>1.4 0.9 1.227 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00679</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c2_l4_m2">
+      <static>true</static>
+      <pose>1.15 0.9 1.227 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00800</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c2_l4_m3">
+      <static>true</static>
+      <pose>0.8999999999999999 0.9 1.227 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00848</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c2_l4_m4">
+      <static>true</static>
+      <pose>0.6499999999999999 0.9 1.227 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01138</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c2_l4_m5">
+      <static>true</static>
+      <pose>0.3999999999999999 0.9 1.227 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01181</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c2_l5_m1">
+      <static>true</static>
+      <pose>1.4 0.9 1.556 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01311</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c2_l5_m2">
+      <static>true</static>
+      <pose>1.15 0.9 1.556 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01391</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c2_l5_m3">
+      <static>true</static>
+      <pose>0.8999999999999999 0.9 1.556 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01396</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c2_l5_m4">
+      <static>true</static>
+      <pose>0.6499999999999999 0.9 1.556 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01451</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c2_l5_m5">
+      <static>true</static>
+      <pose>0.3999999999999999 0.9 1.556 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01509</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c2_l6_m1">
+      <static>true</static>
+      <pose>1.4 0.9 1.886 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01579</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c2_l6_m2">
+      <static>true</static>
+      <pose>1.15 0.9 1.886 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01603</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c2_l6_m3">
+      <static>true</static>
+      <pose>0.8999999999999999 0.9 1.886 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01630</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c2_l6_m4">
+      <static>true</static>
+      <pose>0.6499999999999999 0.9 1.886 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01654</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c2_l6_m5">
+      <static>true</static>
+      <pose>0.3999999999999999 0.9 1.886 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01690</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <include>
+      <name>shelf_6_r1_c3</name>
+      <uri>model://shelf_6</uri>
+      <pose>4.5 1.5 0.0 0 0 0</pose>
+    </include>
+    <model name="stag_r1c3_l1_m1">
+      <static>true</static>
+      <pose>4.4 0.9 0.146 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01824</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c3_l1_m2">
+      <static>true</static>
+      <pose>4.15 0.9 0.146 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01862</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c3_l1_m3">
+      <static>true</static>
+      <pose>3.9000000000000004 0.9 0.146 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01928</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c3_l1_m4">
+      <static>true</static>
+      <pose>3.6500000000000004 0.9 0.146 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01999</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c3_l1_m5">
+      <static>true</static>
+      <pose>3.4000000000000004 0.9 0.146 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02027</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c3_l2_m1">
+      <static>true</static>
+      <pose>4.4 0.9 0.506 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02149</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c3_l2_m2">
+      <static>true</static>
+      <pose>4.15 0.9 0.506 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02234</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c3_l2_m3">
+      <static>true</static>
+      <pose>3.9000000000000004 0.9 0.506 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02269</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c3_l2_m4">
+      <static>true</static>
+      <pose>3.6500000000000004 0.9 0.506 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02275</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c3_l2_m5">
+      <static>true</static>
+      <pose>3.4000000000000004 0.9 0.506 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02288</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c3_l3_m1">
+      <static>true</static>
+      <pose>4.4 0.9 0.867 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02346</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c3_l3_m2">
+      <static>true</static>
+      <pose>4.15 0.9 0.867 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02365</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c3_l3_m3">
+      <static>true</static>
+      <pose>3.9000000000000004 0.9 0.867 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00219</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c3_l3_m4">
+      <static>true</static>
+      <pose>3.6500000000000004 0.9 0.867 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00261</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c3_l3_m5">
+      <static>true</static>
+      <pose>3.4000000000000004 0.9 0.867 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00426</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c3_l4_m1">
+      <static>true</static>
+      <pose>4.4 0.9 1.227 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00519</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c3_l4_m2">
+      <static>true</static>
+      <pose>4.15 0.9 1.227 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00525</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c3_l4_m3">
+      <static>true</static>
+      <pose>3.9000000000000004 0.9 1.227 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00526</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c3_l4_m4">
+      <static>true</static>
+      <pose>3.6500000000000004 0.9 1.227 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00537</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c3_l4_m5">
+      <static>true</static>
+      <pose>3.4000000000000004 0.9 1.227 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00563</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c3_l5_m1">
+      <static>true</static>
+      <pose>4.4 0.9 1.556 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00578</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c3_l5_m2">
+      <static>true</static>
+      <pose>4.15 0.9 1.556 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00679</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c3_l5_m3">
+      <static>true</static>
+      <pose>3.9000000000000004 0.9 1.556 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00800</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c3_l5_m4">
+      <static>true</static>
+      <pose>3.6500000000000004 0.9 1.556 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00848</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c3_l5_m5">
+      <static>true</static>
+      <pose>3.4000000000000004 0.9 1.556 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01138</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c3_l6_m1">
+      <static>true</static>
+      <pose>4.4 0.9 1.886 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01181</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c3_l6_m2">
+      <static>true</static>
+      <pose>4.15 0.9 1.886 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01311</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c3_l6_m3">
+      <static>true</static>
+      <pose>3.9000000000000004 0.9 1.886 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01391</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c3_l6_m4">
+      <static>true</static>
+      <pose>3.6500000000000004 0.9 1.886 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01396</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r1c3_l6_m5">
+      <static>true</static>
+      <pose>3.4000000000000004 0.9 1.886 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01451</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <include>
+      <name>shelf_6_r2_c1</name>
+      <uri>model://shelf_6</uri>
+      <pose>-1.5 4.5 0.0 0 0 0</pose>
+    </include>
+    <model name="stag_r2c1_l1_m1">
+      <static>true</static>
+      <pose>-1.6 3.9 0.146 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01509</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c1_l1_m2">
+      <static>true</static>
+      <pose>-1.85 3.9 0.146 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01579</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c1_l1_m3">
+      <static>true</static>
+      <pose>-2.1 3.9 0.146 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01603</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c1_l1_m4">
+      <static>true</static>
+      <pose>-2.35 3.9 0.146 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01630</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c1_l1_m5">
+      <static>true</static>
+      <pose>-2.6 3.9 0.146 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01654</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c1_l2_m1">
+      <static>true</static>
+      <pose>-1.6 3.9 0.506 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01690</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c1_l2_m2">
+      <static>true</static>
+      <pose>-1.85 3.9 0.506 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01824</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c1_l2_m3">
+      <static>true</static>
+      <pose>-2.1 3.9 0.506 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01862</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c1_l2_m4">
+      <static>true</static>
+      <pose>-2.35 3.9 0.506 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01928</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c1_l2_m5">
+      <static>true</static>
+      <pose>-2.6 3.9 0.506 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01999</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c1_l3_m1">
+      <static>true</static>
+      <pose>-1.6 3.9 0.867 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02027</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c1_l3_m2">
+      <static>true</static>
+      <pose>-1.85 3.9 0.867 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02149</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c1_l3_m3">
+      <static>true</static>
+      <pose>-2.1 3.9 0.867 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02234</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c1_l3_m4">
+      <static>true</static>
+      <pose>-2.35 3.9 0.867 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02269</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c1_l3_m5">
+      <static>true</static>
+      <pose>-2.6 3.9 0.867 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02275</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c1_l4_m1">
+      <static>true</static>
+      <pose>-1.6 3.9 1.227 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02288</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c1_l4_m2">
+      <static>true</static>
+      <pose>-1.85 3.9 1.227 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02346</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c1_l4_m3">
+      <static>true</static>
+      <pose>-2.1 3.9 1.227 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02365</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c1_l4_m4">
+      <static>true</static>
+      <pose>-2.35 3.9 1.227 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00219</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c1_l4_m5">
+      <static>true</static>
+      <pose>-2.6 3.9 1.227 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00261</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c1_l5_m1">
+      <static>true</static>
+      <pose>-1.6 3.9 1.556 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00426</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c1_l5_m2">
+      <static>true</static>
+      <pose>-1.85 3.9 1.556 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00519</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c1_l5_m3">
+      <static>true</static>
+      <pose>-2.1 3.9 1.556 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00525</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c1_l5_m4">
+      <static>true</static>
+      <pose>-2.35 3.9 1.556 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00526</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c1_l5_m5">
+      <static>true</static>
+      <pose>-2.6 3.9 1.556 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00537</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c1_l6_m1">
+      <static>true</static>
+      <pose>-1.6 3.9 1.886 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00563</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c1_l6_m2">
+      <static>true</static>
+      <pose>-1.85 3.9 1.886 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00578</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c1_l6_m3">
+      <static>true</static>
+      <pose>-2.1 3.9 1.886 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00679</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c1_l6_m4">
+      <static>true</static>
+      <pose>-2.35 3.9 1.886 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00800</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c1_l6_m5">
+      <static>true</static>
+      <pose>-2.6 3.9 1.886 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00848</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <include>
+      <name>shelf_6_r2_c2</name>
+      <uri>model://shelf_6</uri>
+      <pose>1.5 4.5 0.0 0 0 0</pose>
+    </include>
+    <model name="stag_r2c2_l1_m1">
+      <static>true</static>
+      <pose>1.4 3.9 0.146 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01138</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c2_l1_m2">
+      <static>true</static>
+      <pose>1.15 3.9 0.146 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01181</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c2_l1_m3">
+      <static>true</static>
+      <pose>0.8999999999999999 3.9 0.146 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01311</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c2_l1_m4">
+      <static>true</static>
+      <pose>0.6499999999999999 3.9 0.146 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01391</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c2_l1_m5">
+      <static>true</static>
+      <pose>0.3999999999999999 3.9 0.146 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01396</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c2_l2_m1">
+      <static>true</static>
+      <pose>1.4 3.9 0.506 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01451</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c2_l2_m2">
+      <static>true</static>
+      <pose>1.15 3.9 0.506 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01509</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c2_l2_m3">
+      <static>true</static>
+      <pose>0.8999999999999999 3.9 0.506 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01579</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c2_l2_m4">
+      <static>true</static>
+      <pose>0.6499999999999999 3.9 0.506 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01603</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c2_l2_m5">
+      <static>true</static>
+      <pose>0.3999999999999999 3.9 0.506 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01630</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c2_l3_m1">
+      <static>true</static>
+      <pose>1.4 3.9 0.867 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01654</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c2_l3_m2">
+      <static>true</static>
+      <pose>1.15 3.9 0.867 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01690</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c2_l3_m3">
+      <static>true</static>
+      <pose>0.8999999999999999 3.9 0.867 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01824</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c2_l3_m4">
+      <static>true</static>
+      <pose>0.6499999999999999 3.9 0.867 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01862</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c2_l3_m5">
+      <static>true</static>
+      <pose>0.3999999999999999 3.9 0.867 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01928</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c2_l4_m1">
+      <static>true</static>
+      <pose>1.4 3.9 1.227 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01999</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c2_l4_m2">
+      <static>true</static>
+      <pose>1.15 3.9 1.227 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02027</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c2_l4_m3">
+      <static>true</static>
+      <pose>0.8999999999999999 3.9 1.227 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02149</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c2_l4_m4">
+      <static>true</static>
+      <pose>0.6499999999999999 3.9 1.227 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02234</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c2_l4_m5">
+      <static>true</static>
+      <pose>0.3999999999999999 3.9 1.227 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02269</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c2_l5_m1">
+      <static>true</static>
+      <pose>1.4 3.9 1.556 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02275</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c2_l5_m2">
+      <static>true</static>
+      <pose>1.15 3.9 1.556 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02288</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c2_l5_m3">
+      <static>true</static>
+      <pose>0.8999999999999999 3.9 1.556 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02346</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c2_l5_m4">
+      <static>true</static>
+      <pose>0.6499999999999999 3.9 1.556 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02365</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c2_l5_m5">
+      <static>true</static>
+      <pose>0.3999999999999999 3.9 1.556 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00219</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c2_l6_m1">
+      <static>true</static>
+      <pose>1.4 3.9 1.886 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00261</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c2_l6_m2">
+      <static>true</static>
+      <pose>1.15 3.9 1.886 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00426</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c2_l6_m3">
+      <static>true</static>
+      <pose>0.8999999999999999 3.9 1.886 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00519</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c2_l6_m4">
+      <static>true</static>
+      <pose>0.6499999999999999 3.9 1.886 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00525</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c2_l6_m5">
+      <static>true</static>
+      <pose>0.3999999999999999 3.9 1.886 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00526</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <include>
+      <name>shelf_6_r2_c3</name>
+      <uri>model://shelf_6</uri>
+      <pose>4.5 4.5 0.0 0 0 0</pose>
+    </include>
+    <model name="stag_r2c3_l1_m1">
+      <static>true</static>
+      <pose>4.4 3.9 0.146 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00537</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c3_l1_m2">
+      <static>true</static>
+      <pose>4.15 3.9 0.146 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00563</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c3_l1_m3">
+      <static>true</static>
+      <pose>3.9000000000000004 3.9 0.146 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00578</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c3_l1_m4">
+      <static>true</static>
+      <pose>3.6500000000000004 3.9 0.146 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00679</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c3_l1_m5">
+      <static>true</static>
+      <pose>3.4000000000000004 3.9 0.146 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00800</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c3_l2_m1">
+      <static>true</static>
+      <pose>4.4 3.9 0.506 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_00848</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c3_l2_m2">
+      <static>true</static>
+      <pose>4.15 3.9 0.506 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01138</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c3_l2_m3">
+      <static>true</static>
+      <pose>3.9000000000000004 3.9 0.506 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01181</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c3_l2_m4">
+      <static>true</static>
+      <pose>3.6500000000000004 3.9 0.506 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01311</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c3_l2_m5">
+      <static>true</static>
+      <pose>3.4000000000000004 3.9 0.506 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01391</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c3_l3_m1">
+      <static>true</static>
+      <pose>4.4 3.9 0.867 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01396</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c3_l3_m2">
+      <static>true</static>
+      <pose>4.15 3.9 0.867 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01451</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c3_l3_m3">
+      <static>true</static>
+      <pose>3.9000000000000004 3.9 0.867 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01509</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c3_l3_m4">
+      <static>true</static>
+      <pose>3.6500000000000004 3.9 0.867 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01579</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c3_l3_m5">
+      <static>true</static>
+      <pose>3.4000000000000004 3.9 0.867 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01603</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c3_l4_m1">
+      <static>true</static>
+      <pose>4.4 3.9 1.227 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01630</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c3_l4_m2">
+      <static>true</static>
+      <pose>4.15 3.9 1.227 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01654</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c3_l4_m3">
+      <static>true</static>
+      <pose>3.9000000000000004 3.9 1.227 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01690</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c3_l4_m4">
+      <static>true</static>
+      <pose>3.6500000000000004 3.9 1.227 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01824</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c3_l4_m5">
+      <static>true</static>
+      <pose>3.4000000000000004 3.9 1.227 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01862</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c3_l5_m1">
+      <static>true</static>
+      <pose>4.4 3.9 1.556 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01928</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c3_l5_m2">
+      <static>true</static>
+      <pose>4.15 3.9 1.556 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_01999</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c3_l5_m3">
+      <static>true</static>
+      <pose>3.9000000000000004 3.9 1.556 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02027</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c3_l5_m4">
+      <static>true</static>
+      <pose>3.6500000000000004 3.9 1.556 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02149</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c3_l5_m5">
+      <static>true</static>
+      <pose>3.4000000000000004 3.9 1.556 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02234</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c3_l6_m1">
+      <static>true</static>
+      <pose>4.4 3.9 1.886 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02269</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c3_l6_m2">
+      <static>true</static>
+      <pose>4.15 3.9 1.886 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02275</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c3_l6_m3">
+      <static>true</static>
+      <pose>3.9000000000000004 3.9 1.886 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02288</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c3_l6_m4">
+      <static>true</static>
+      <pose>3.6500000000000004 3.9 1.886 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02346</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+    <model name="stag_r2c3_l6_m5">
+      <static>true</static>
+      <pose>3.4000000000000004 3.9 1.886 1.5708 0 0</pose>
+      <link name="marker_link">
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.1 0.1 0.01</size></box></geometry>
+          <material>
+            <script>
+              <uri>model://STag_marker/materials/scripts</uri>
+              <uri>model://STag_marker/materials/textures</uri>
+              <name>STagMarker/marker_02365</name>
+            </script>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+          <pose>0 0 0.001 0 0 0</pose>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

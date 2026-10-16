@@ -1,0 +1,52 @@
+# Параметры для узла tf_to_fiducial_node
+# Используется в launch файле tf_to_fiducial.launch.py
+
+tf_to_fiducial_node:
+  ros__parameters:
+    # Симуляция: время из /clock (TF маркеров штампуются временем кадра Gazebo)
+    use_sim_time: true
+
+    robot_base_frame: 'base_link'
+    # Большие маркеры в симуляции — HD17 (фреймы детектора stag_hd17_<id>)
+    marker_frame_prefix: 'stag_hd17_'
+
+    update_rate: 10.0
+    output_topic: '/landmark_detections'
+    # Сторона чёрного квадрата большого маркера HD17 в мире Gazebo
+    marker_size: 0.08
+
+    # RTAB-Map принимает только ландмарки с id > 0, поэтому маркер HD17 id=0
+    # в граф не попадает (узел всё равно поднимает начало диапазона до 1).
+    marker_id_range_start: 1
+    marker_id_range_end: 5
+
+    # Allowlist: only these big marker IDs are published to RTAB-Map.
+    # Пустой список в YAML ROS 2 не парсится — чтобы искать маркеры по всему
+    # диапазону marker_id_range_*, закомментируйте строку целиком.
+    allowed_marker_ids: [1, 2, 3, 4, 5]
+
+    # operation_mode (mapping | localization) is set by the launch `localization`
+    # argument; the value here is only a standalone-run fallback.
+    operation_mode: mapping
+    # Размер скользящего окна в mapping-режиме (сэмплов при 10 Hz = 0.3 сек).
+    # Маркер публикуется каждый тик пока виден → RTAB-Map накапливает несколько constraints.
+    mapping_pose_sample_count: 3
+    # Размер скользящего окна в localization-режиме (0.5 с): вторая линия защиты
+    # поверх outlier_gate_m/max_tf_age_sec — 1-2 плохих свежих сэмпла не
+    # доминируют в медиане.
+    localization_pose_sample_count: 5
+    max_publish_distance_m: 9.0
+
+    # --- Защита от ложных landmark ---
+    # lookupTransform(..., tf2::TimePointZero) отдаёт последнюю доступную TF
+    # БЕЗ проверки возраста: если маркер пропал из вида, детектор перестаёт
+    # слать новые transform'ы, но старый остаётся в tf2 buffer (~10с по
+    # умолчанию) и TimePointZero молча отдаёт его как "видимый прямо сейчас".
+    # Трансформации старше max_tf_age_sec считаются "маркер не виден".
+    max_tf_age_sec: 0.3
+    # Сэмпл, отклонившийся от текущей медианы окна больше чем на
+    # outlier_gate_m, отбрасывается — если не подтверждён outlier_persist_count
+    # подряд похожими сэмплами (тогда считаем это реальным новым положением
+    # маркера, не выбросом).
+    outlier_gate_m: 0.25
+    outlier_persist_count: 2

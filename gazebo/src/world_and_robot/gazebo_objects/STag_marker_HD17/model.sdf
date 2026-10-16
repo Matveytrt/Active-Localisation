@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+    <model name="stag_marker_10cm">
+        <static>true</static>
+        <link name="marker_link">
+            <collision name="collision">
+                <geometry>
+                    <mesh>
+                        <uri>model://STag_marker/meshes/box_10x10x1.dae</uri>
+                        <!-- mesh в мм, масштабируем в м -->
+                        <scale>0.001 0.001 0.001</scale>
+                    </mesh>
+                </geometry>
+            </collision>
+            <visual name="visual">
+                <geometry>
+                    <!-- Для гарантированной UV-корректности используем примитив box -->
+                    <box>
+                        <size>0.1 0.1 0.01</size>
+                    </box>
+                </geometry>
+                <material>
+                    <script>
+                        <uri>model://STag_marker/materials/scripts</uri>
+                        <uri>model://STag_marker/materials/textures</uri>
+                        <!-- Материалы этой модели: STagMarkerHD17/marker_<id> из
+                             model://STag_marker_HD17/materials/scripts/markers.material -->
+                        <name>STagMarker/marker_00000</name>
+                    </script>
+                    <!-- Базовый цвет, если текстура не применится -->
+                    <ambient>1 1 1 1</ambient>
+                    <diffuse>1 1 1 1</diffuse>
+                </material>
+                <!-- Лёгкий сдвиг, чтобы визуал не сливался с коллизией -->
+                <pose>0 0 0.001 0 0 0</pose>
+            </visual>
+        </link>
+    </model>
+</sdf>

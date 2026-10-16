@@ -1,0 +1,54 @@
+material STagMarkerHD17/marker_00000 {
+  technique { pass {
+    ambient 1 1 1 1
+    diffuse 1 1 1 1
+    specular 0 0 0 1
+    lighting off
+    texture_unit { texture hd17_00000.png }
+  } }
+}
+material STagMarkerHD17/marker_00001 {
+  technique { pass {
+    ambient 1 1 1 1
+    diffuse 1 1 1 1
+    specular 0 0 0 1
+    lighting off
+    texture_unit { texture hd17_00001.png }
+  } }
+}
+material STagMarkerHD17/marker_00002 {
+  technique { pass {
+    ambient 1 1 1 1
+    diffuse 1 1 1 1
+    specular 0 0 0 1
+    lighting off
+    texture_unit { texture hd17_00002.png }
+  } }
+}
+material STagMarkerHD17/marker_00003 {
+  technique { pass {
+    ambient 1 1 1 1
+    diffuse 1 1 1 1
+    specular 0 0 0 1
+    lighting off
+    texture_unit { texture hd17_00003.png }
+  } }
+}
+material STagMarkerHD17/marker_00004 {
+  technique { pass {
+    ambient 1 1 1 1
+    diffuse 1 1 1 1
+    specular 0 0 0 1
+    lighting off
+    texture_unit { texture hd17_00004.png }
+  } }
+}
+material STagMarkerHD17/marker_00005 {
+  technique { pass {
+    ambient 1 1 1 1
+    diffuse 1 1 1 1
+    specular 0 0 0 1
+    lighting off
+    texture_unit { texture hd17_00005.png }
+  } }
+}

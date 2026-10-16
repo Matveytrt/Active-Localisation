@@ -1,0 +1,36 @@
+services:
+  navigation:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        ROS_VER: humble
+        APP_UID: ${UID:-1000}
+    image: active-localization-navigation:latest
+    container_name: navigation
+    # GPU: раскомментируйте runtime и /dev/dri (нужен nvidia-container-toolkit; NVIDIA_* заданы в Dockerfile)
+    # runtime: nvidia
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ./src:/home/app/ros2_ws/src:rw
+      - ./maps:/home/app/ros2_ws/maps:rw
+      - /dev:/dev
+    environment:
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-1}
+      - ROS_LOCALHOST_ONLY=${ROS_LOCALHOST_ONLY:-0}
+      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION:-rmw_fastrtps_cpp}
+      # Только UDP: shared memory Fast DDS не работает между разными контейнерами
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+      # Gazebo в этом образе не запускается, GAZEBO_MODEL_PATH не нужен: модели живут в модуле gazebo.
+      # RTABMap library paths (обычно не требуется переопределять здесь)
+      - LD_LIBRARY_PATH=/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib/aarch64-linux-gnu:${LD_LIBRARY_PATH:-}
+    devices:
+      - /dev/input:/dev/input
+      #- /dev/video0:/dev/video0
+      # - /dev/dri:/dev/dri
+    stdin_open: true
+    tty: true

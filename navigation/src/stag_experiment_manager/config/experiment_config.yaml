@@ -1,0 +1,79 @@
+# Experiment Configuration for STag Detection Orchestrator
+
+# Define all experiment parameters here.
+# The orchestrator will generate all combinations of:
+# markers × experiment_types × gait_types × attempts_per_combination
+
+experiments:
+  # List of marker types to test
+  # For HG markers with different darkness levels, use full ID
+  # Example: HG17_255-000 means library "HG17" but full name in paths
+  markers:
+    - HD17
+    # - HC21
+    # - HG17_076-178
+  
+  # Types of experiments (lighting conditions, etc.)
+  experiment_types:
+    - light   # Good lighting
+    # - dark    # Low lighting
+    # - cold    # Temperature variation
+  
+  # Types of robot gait/movement
+  gait_types:
+    - slow_center_forward
+    - medi_center_forward
+    - diskr_center_forward
+    - slow_center_side
+    - medi_center_side
+    - diskr_center_side
+    # Other gaits:
+    # - slow_up_forward
+    # - medi_up_forward
+    # - diskr_up_forward
+    # - slow_up_side
+    # - medi_up_side
+    # - diskr_up_side
+    # - manip
+    # - fast
+  
+  # Number of attempts per unique combination
+  attempts_per_combination: 1
+
+# Output paths configuration
+output:
+  # Base directory for all experiment outputs
+  # Will create subdirectories: {marker}/{experiment}_{gait}/{attempt}/
+  # Inside each attempt folder: bags/ and logs/ subdirectories
+  base_path: "/home/app/data/res640/m40"
+  
+  # Subdirectory names
+  bags_subdir: "bags"
+  logs_subdir: "logs"
+
+# STag detector and logger configuration
+stag_detector:
+  # Path to the launch file to execute
+  launch_file: "/home/app/ros2_ws/src/stag_ros2_enhanced/launch/stag_detector_with_logging.launch.py"
+  
+  # detector_config is passed to the launch file; logger_config is not passed (launch default is used)
+  detector_config: "/home/app/ros2_ws/src/stag_ros2_enhanced/config/detector_params_HD15.yaml"
+  logger_config: "/home/app/ros2_ws/src/stag_ros2_enhanced/config/logger_params.yaml"
+  
+  # Namespace for detector nodes (not read by orchestrator)
+  namespace: "stag_detector"
+  
+  # Topics to record in rosbag: real-robot RealSense topic; in simulation use /torso_rgbd/image_raw
+  rosbag_topics: "/camera/camera/color/image_raw"
+  # rosbag_topics: "/camera/camera/color/image_raw /stag_detector/detection_image_hd15"
+
+# Orchestrator behavior settings
+orchestrator:
+  # Auto-create directories if they don't exist
+  auto_create_dirs: true
+  
+  # Wait time (seconds) after stopping experiment before ready for next
+  cooldown_time: 2.0
+  
+  # Enable verbose logging
+  verbose: true
