@@ -1,0 +1,14 @@
+# Keep LF everywhere: the repo is mounted into Linux containers (ROS 2 / Gazebo),
+# and CRLF breaks shebang scripts and launch files. Independent of core.autocrlf.
+* text=auto eol=lf
+
+# Binary assets
+*.png binary
+*.jpg binary
+*.stl binary
+*.STL binary
+*.zip binary
+*.pdf binary
+*.db  binary
+*.bag binary
+*.db3 binary
