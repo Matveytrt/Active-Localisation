@@ -6,22 +6,25 @@ and produces a drifting "wheel odometry" estimate:
 1. The GT increment between two consecutive GT poses is expressed in the body
    frame of the previous GT pose: (dx_b, dy_b, dyaw). Using pose increments
    (instead of the twist) removes any ambiguity about the twist frame.
-2. The increment is corrupted with motion-proportional errors (in the spirit
-   of the probabilistic odometry motion model, Thrun et al.):
+2. The increment is corrupted with random-walk noise whose *variance* is
+   proportional to the distance / angle travelled (so the accumulated random
+   error does not depend on the input rate), plus deterministic errors:
 
        trans = hypot(dx_b, dy_b),  rot = |dyaw|
-       dx'   = dx_b * (1 + scale_x) + N(0, (a1*trans + a2*rot)^2)
-       dy'   = dy_b * (1 + scale_y) + N(0, (a1*trans + a2*rot)^2)
-       dyaw' = dyaw * (1 + scale_yaw) + yaw_drift_per_m * trans
-               + N(0, (a3*rot + a4*trans)^2)
+       var_dx   = k_xx*trans + k_xr*rot
+       var_dy   = k_yy*trans + k_yr*rot
+       var_dyaw = k_rr*rot   + k_rt*trans
+       dx'   = dx_b * (1 + scale_x) + N(0, var_dx)
+       dy'   = dy_b * (1 + scale_y) + N(0, var_dy)
+       dyaw' = dyaw * (1 + scale_yaw) + yaw_drift_per_m * trans + N(0, var_dyaw)
 
    If trans < min_motion and rot < min_motion the increment is passed through
    unchanged (no noise, no scale, no drift): a standing robot does not drift.
 3. The noisy increment is composed onto the estimated pose (SE(2)).
 
-Covariance (diagonal approximation, see README):
-    pose_var  += (sigma_t^2, sigma_t^2, sigma_r^2) per step, reported + cov_floor
-    twist_var  = (sigma_t^2, sigma_t^2, sigma_r^2) / dt^2 + cov_floor
+Covariance: full 3x3 (x, y, yaw) first-order propagation through SE(2)
+composition, P <- F P F^T + G Q G^T, Q = diag(var_dx, var_dy, var_dyaw).
+Deterministic errors (scale_*, yaw_drift_per_m) are NOT represented in P.
 """
 
 from __future__ import annotations
@@ -60,22 +63,40 @@ def compose(p: Tuple[float, float, float],
     return (x + c * dx - s * dy, y + s * dx + c * dy, wrap_angle(th + dth))
 
 
+def compose_jacobians(p: Tuple[float, float, float],
+                      d: Tuple[float, float, float]) -> Tuple[np.ndarray, np.ndarray]:
+    """Jacobians of compose(p, d): F = d/dp, G = d/dd."""
+    th = p[2]
+    dx, dy = d[0], d[1]
+    c = math.cos(th)
+    s = math.sin(th)
+    F = np.array([[1.0, 0.0, -s * dx - c * dy],
+                  [0.0, 1.0, c * dx - s * dy],
+                  [0.0, 0.0, 1.0]])
+    G = np.array([[c, -s, 0.0],
+                  [s, c, 0.0],
+                  [0.0, 0.0, 1.0]])
+    return F, G
+
+
 @dataclass
 class OdomNoiseParams:
-    """Model parameters. Defaults are a plausible wheel-odometry scale only;
+    """Model parameters. Defaults: see README "How the defaults were chosen";
     the final values are a team decision."""
     enabled: bool = True
     init_from_gt: bool = True
-    a1: float = 0.05             # trans noise per metre of translation [m/m]
-    a2: float = 0.01             # trans noise per radian of rotation [m/rad]
-    a3: float = 0.05             # rot noise per radian of rotation [rad/rad]
-    a4: float = 0.01             # rot noise per metre of translation [rad/m]
+    k_xx: float = 2.5e-4         # var of dx per metre travelled [m^2/m]
+    k_xr: float = 1.0e-5         # var of dx per radian turned [m^2/rad]
+    k_yy: float = 2.5e-4         # var of dy per metre travelled [m^2/m]
+    k_yr: float = 1.0e-5         # var of dy per radian turned [m^2/rad]
+    k_rr: float = 5.0e-4         # var of dyaw per radian turned [rad^2/rad]
+    k_rt: float = 1.0e-5         # var of dyaw per metre travelled [rad^2/m]
     scale_x: float = 0.01        # systematic scale error, body x
     scale_y: float = 0.01        # systematic scale error, body y
     scale_yaw: float = 0.0       # systematic scale error, yaw
     yaw_drift_per_m: float = 0.01  # deterministic yaw drift [rad/m]
     min_motion: float = 1e-6     # below this (m and rad) no noise is applied
-    cov_floor: float = 1e-6      # added to every reported variance
+    cov_floor: float = 1e-6      # added to every reported diagonal variance
 
     @classmethod
     def names(cls) -> Tuple[str, ...]:
@@ -87,7 +108,11 @@ class OdomNoiseParams:
         unknown = set(d) - known
         if unknown:
             raise ValueError("unknown noise parameters: %s" % sorted(unknown))
-        return cls(**d)
+        p = cls(**d)
+        for name in ('k_xx', 'k_xr', 'k_yy', 'k_yr', 'k_rr', 'k_rt'):
+            if getattr(p, name) < 0.0:
+                raise ValueError("%s must be >= 0 (it is a variance rate)" % name)
+        return p
 
 
 @dataclass
@@ -99,8 +124,14 @@ class OdomSample:
     vx: float          # body-frame linear velocity x [m/s]
     vy: float          # body-frame linear velocity y [m/s]
     wz: float          # yaw rate [rad/s]
-    pose_var: Tuple[float, float, float]   # (var_x, var_y, var_yaw)
+    pose_cov: np.ndarray   # 3x3 covariance of (x, y, yaw), odom frame
     twist_var: Tuple[float, float, float]  # (var_vx, var_vy, var_wz)
+
+    @property
+    def pose_var(self) -> Tuple[float, float, float]:
+        """Diagonal of pose_cov."""
+        return (float(self.pose_cov[0, 0]), float(self.pose_cov[1, 1]),
+                float(self.pose_cov[2, 2]))
 
 
 class OdomNoiseModel:
@@ -117,15 +148,23 @@ class OdomNoiseModel:
         self._prev_gt: Optional[Tuple[float, float, float]] = None
         self._prev_t: Optional[float] = None
         self._pose: Tuple[float, float, float] = (0.0, 0.0, 0.0)
-        self._var = [0.0, 0.0, 0.0]
+        self._P = np.zeros((3, 3))
 
     @property
     def initialized(self) -> bool:
         return self._prev_gt is not None
 
+    def _reported_cov(self) -> np.ndarray:
+        return self._P + self.params.cov_floor * np.eye(3)
+
     def _floor(self, v) -> Tuple[float, float, float]:
         f = self.params.cov_floor
         return (v[0] + f, v[1] + f, v[2] + f)
+
+    def _sample(self, vx: float, vy: float, wz: float,
+                tw_var: Tuple[float, float, float]) -> OdomSample:
+        return OdomSample(self._pose[0], self._pose[1], self._pose[2], vx, vy, wz,
+                          self._reported_cov(), self._floor(tw_var))
 
     def update(self, x: float, y: float, yaw: float, t: float) -> OdomSample:
         """Feed one GT pose at time t [s]; return the noisy odometry sample."""
@@ -140,9 +179,7 @@ class OdomNoiseModel:
                 self._pose = (0.0, 0.0, 0.0)
             else:
                 self._pose = gt
-            return OdomSample(self._pose[0], self._pose[1], self._pose[2],
-                              0.0, 0.0, 0.0,
-                              self._floor(self._var), self._floor((0.0, 0.0, 0.0)))
+            return self._sample(0.0, 0.0, 0.0, (0.0, 0.0, 0.0))
 
         dt = float(t) - self._prev_t
         d_gt = relative_pose(self._prev_gt, gt)
@@ -153,8 +190,7 @@ class OdomNoiseModel:
         if not p.enabled:
             self._pose = gt
             vx, vy, wz = self._vel(d_gt, dt)
-            return OdomSample(gt[0], gt[1], gt[2], vx, vy, wz,
-                              self._floor(self._var), self._floor((0.0, 0.0, 0.0)))
+            return self._sample(vx, vy, wz, (0.0, 0.0, 0.0))
 
         # --- noisy increment -----------------------------------------------
         dx_b, dy_b, dyaw = d_gt
@@ -162,33 +198,32 @@ class OdomNoiseModel:
         rot = abs(dyaw)
         if trans < p.min_motion and rot < p.min_motion:
             d_noisy = d_gt
-            step_var = (0.0, 0.0, 0.0)
+            q = (0.0, 0.0, 0.0)
         else:
-            sig_t = p.a1 * trans + p.a2 * rot
-            sig_r = p.a3 * rot + p.a4 * trans
+            q = (p.k_xx * trans + p.k_xr * rot,
+                 p.k_yy * trans + p.k_yr * rot,
+                 p.k_rr * rot + p.k_rt * trans)
             n = self._rng.standard_normal(3)
             d_noisy = (
-                dx_b * (1.0 + p.scale_x) + sig_t * n[0],
-                dy_b * (1.0 + p.scale_y) + sig_t * n[1],
-                dyaw * (1.0 + p.scale_yaw) + p.yaw_drift_per_m * trans + sig_r * n[2],
+                dx_b * (1.0 + p.scale_x) + math.sqrt(q[0]) * n[0],
+                dy_b * (1.0 + p.scale_y) + math.sqrt(q[1]) * n[1],
+                dyaw * (1.0 + p.scale_yaw) + p.yaw_drift_per_m * trans
+                + math.sqrt(q[2]) * n[2],
             )
-            step_var = (sig_t * sig_t, sig_t * sig_t, sig_r * sig_r)
+            # First-order propagation, linearized at the current estimate.
+            F, G = compose_jacobians(self._pose, d_noisy)
+            P = F @ self._P @ F.T + G @ np.diag(q) @ G.T
+            self._P = 0.5 * (P + P.T)
 
         self._pose = compose(self._pose, d_noisy)
-        # Diagonal accumulation. dx/dy noise is isotropic, so rotating it into
-        # the odom frame does not change the diagonal; yaw->position coupling
-        # (Jacobian propagation) is intentionally neglected.
-        for i in range(3):
-            self._var[i] += step_var[i]
 
         vx, vy, wz = self._vel(d_noisy, dt)
         if dt > 0.0:
             inv = 1.0 / (dt * dt)
-            tw_var = (step_var[0] * inv, step_var[1] * inv, step_var[2] * inv)
+            tw_var = (q[0] * inv, q[1] * inv, q[2] * inv)
         else:
             tw_var = (0.0, 0.0, 0.0)
-        return OdomSample(self._pose[0], self._pose[1], self._pose[2], vx, vy, wz,
-                          self._floor(self._var), self._floor(tw_var))
+        return self._sample(vx, vy, wz, tw_var)
 
     @staticmethod
     def _vel(d: Tuple[float, float, float], dt: float) -> Tuple[float, float, float]:

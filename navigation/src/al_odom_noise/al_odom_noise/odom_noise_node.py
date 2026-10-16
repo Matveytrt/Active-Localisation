@@ -24,16 +24,27 @@ def yaw_from_quat(q) -> float:
                       1.0 - 2.0 * (q.y * q.y + q.z * q.z))
 
 
-def cov6(var_x: float, var_y: float, var_yaw: float):
-    """6x6 row-major covariance (x, y, z, roll, pitch, yaw), diagonal."""
+IDX_XYYAW = (0, 1, 5)  # x, y, yaw rows/cols in the 6x6 (x y z roll pitch yaw)
+
+
+def cov6(cov3):
+    """6x6 row-major covariance from a 3x3 (x, y, yaw) block.
+
+    The (x, y, yaw) block, including cross terms, goes to indices
+    0,1,5 / 6,7,11 / 30,31,35; z, roll, pitch get SMALL_VAR.
+    """
     c = [0.0] * 36
-    c[0] = var_x
-    c[7] = var_y
     c[14] = SMALL_VAR
     c[21] = SMALL_VAR
     c[28] = SMALL_VAR
-    c[35] = var_yaw
+    for i, r in enumerate(IDX_XYYAW):
+        for j, k in enumerate(IDX_XYYAW):
+            c[6 * r + k] = float(cov3[i][j])
     return c
+
+
+def diag3(v):
+    return [[v[0], 0.0, 0.0], [0.0, v[1], 0.0], [0.0, 0.0, v[2]]]
 
 
 class OdomNoiseNode(Node):
@@ -96,11 +107,11 @@ class OdomNoiseNode(Node):
         out.pose.pose.position.z = p.position.z
         out.pose.pose.orientation.z = qz
         out.pose.pose.orientation.w = qw
-        out.pose.covariance = cov6(*s.pose_var)
+        out.pose.covariance = cov6(s.pose_cov)
         out.twist.twist.linear.x = s.vx
         out.twist.twist.linear.y = s.vy
         out.twist.twist.angular.z = s.wz
-        out.twist.covariance = cov6(*s.twist_var)
+        out.twist.covariance = cov6(diag3(s.twist_var))
         self.pub.publish(out)
 
         if self.tf_broadcaster is not None:
