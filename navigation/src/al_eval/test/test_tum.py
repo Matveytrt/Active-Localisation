@@ -1,12 +1,16 @@
 import math
 import os
 import random
+import sys
 
 import pytest
 
-from al_eval.tum import (TumWriter, apply_se2_offset, apply_se2_offset_3d,
-                         format_stamp, quat_multiply, quat_to_yaw, read_tum,
-                         wrap_angle, yaw_to_quat)
+# allow `pytest navigation/src/al_eval/test` from anywhere (no colcon)
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
+from al_eval.tum import (  # noqa: E402
+    TumWriter, apply_se2_offset, apply_se2_offset_3d, format_stamp,
+    quat_multiply, quat_to_yaw, read_tum, wrap_angle, yaw_to_quat)
 
 
 def _ang_close(a, b, tol=1e-12):

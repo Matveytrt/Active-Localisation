@@ -1,0 +1,19 @@
+traj_recorder:
+  ros__parameters:
+    output_dir: "~/al_runs"   # run dir = <output_dir>/<run_name>/
+    run_name: ""              # "" -> run_YYYYmmdd_HHMMSS
+    overwrite: false          # refuse to overwrite existing gt.tum/est.tum
+    rate_hz: 10.0             # est.tum sampling of TF map->base_link
+    map_frame: "map"
+    base_frame: "base_link"
+    record_gt: true           # false if GT comes from pose_saver TUM instead
+    gt_topic: "/odom_gt"
+    # pose_map = offset o pose_gt  (SE(2), applied before writing gt.tum).
+    # NOT VERIFIED which frame /odom_gt is in. If it is relative to the spawn
+    # pose and map coincides with the Gazebo world, use x=-2.0 y=-0.5 yaw=0.
+    # If it is already in world coordinates, keep 0. Check meta.yaml
+    # gt_info.first_pose_raw right after spawn: ~(0,0) -> spawn-relative,
+    # ~(-2.0,-0.5) -> world.
+    gt_offset_x: 0.0
+    gt_offset_y: 0.0
+    gt_offset_yaw: 0.0
