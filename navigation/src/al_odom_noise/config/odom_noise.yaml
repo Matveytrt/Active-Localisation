@@ -1,0 +1,33 @@
+# Noisy odometry: /odom_gt (planar_move, ideal) -> /odom + TF odom->base_link.
+# Model parameter defaults are a plausible wheel-odometry scale only; final
+# values are a team decision (see README).
+# Write doubles with a decimal point (0.0, not 0) for clarity; the node also
+# accepts ints thanks to dynamic typing.
+odom_noise_node:
+  ros__parameters:
+    use_sim_time: true
+
+    input_topic: /odom_gt
+    output_topic: /odom
+    odom_frame: odom
+    base_frame: base_link
+    publish_tf: true
+    seed: 42
+
+    # --- noise model (al_odom_noise.noise_model.OdomNoiseParams) ---
+    enabled: true          # false -> output == GT exactly
+    init_from_gt: true     # false -> odometry starts at (0, 0, 0)
+    # Random-walk noise: variance of each increment grows linearly with the
+    # distance / angle travelled (rate independent). See README for the choice.
+    k_xx: 2.5e-4           # var dx   per metre  [m^2/m]    (sigma_x 0.05 m over 10 m)
+    k_xr: 1.0e-5           # var dx   per radian [m^2/rad]
+    k_yy: 2.5e-4           # var dy   per metre  [m^2/m]
+    k_yr: 1.0e-5           # var dy   per radian [m^2/rad]
+    k_rr: 5.0e-4           # var dyaw per radian [rad^2/rad] (sigma 0.056 rad per full turn)
+    k_rt: 1.0e-5           # var dyaw per metre  [rad^2/m]  (sigma_yaw 0.01 rad over 10 m)
+    scale_x: 0.01          # systematic scale error, body x
+    scale_y: 0.01          # systematic scale error, body y
+    scale_yaw: 0.0         # systematic scale error, yaw
+    yaw_drift_per_m: 0.01  # deterministic yaw drift [rad/m]
+    min_motion: 1.0e-6     # below this (m and rad) no noise: standing robot does not drift
+    cov_floor: 1.0e-6      # added to every reported variance
