@@ -16,7 +16,7 @@ DT = 0.02  # 50 Hz, as gazebo_ros_planar_move
 
 
 def zero_noise(**kw):
-    p = dict(a1=0.0, a2=0.0, a3=0.0, a4=0.0,
+    p = dict(k_xx=0.0, k_xr=0.0, k_yy=0.0, k_yr=0.0, k_rr=0.0, k_rt=0.0,
              scale_x=0.0, scale_y=0.0, scale_yaw=0.0, yaw_drift_per_m=0.0)
     p.update(kw)
     return OdomNoiseParams(**p)
@@ -193,18 +193,19 @@ def test_zero_noise_matches_gt_across_pi():
 
 
 # extra ---------------------------------------------------------------------
-def test_default_noise_drifts_and_covariance_grows():
+def test_default_noise_drifts_and_covariance_is_valid():
     traj = circle_traj()
     m = OdomNoiseModel(OdomNoiseParams(), seed=42)
-    prev = None
     for i, (x, y, th) in enumerate(traj):
         s = m.update(x, y, th, i * DT)
-        if prev is not None:
-            assert all(a >= b for a, b in zip(s.pose_var, prev))
-        prev = s.pose_var
+        P = s.pose_cov
+        assert P.shape == (3, 3)
+        assert np.allclose(P, P.T, atol=0.0)
+        assert np.linalg.eigvalsh(P).min() > 0.0
         assert all(v > 0.0 for v in s.twist_var)
     assert math.hypot(s.x - traj[-1, 0], s.y - traj[-1, 1]) > 1e-3
-    assert prev[0] > OdomNoiseParams().cov_floor
+    assert s.pose_var[2] > 10 * OdomNoiseParams().cov_floor
+    assert abs(P[0, 1]) > 0.0 and abs(P[1, 2]) > 0.0  # cross terms present
 
 
 def test_nonpositive_dt_gives_zero_velocity():
@@ -216,4 +217,92 @@ def test_nonpositive_dt_gives_zero_velocity():
 
 def test_unknown_param_rejected():
     with pytest.raises(ValueError):
-        OdomNoiseParams.from_dict({'a1': 0.1, 'bogus': 1.0})
+        OdomNoiseParams.from_dict({'k_xx': 0.1, 'bogus': 1.0})
+    with pytest.raises(ValueError):
+        OdomNoiseParams.from_dict({'k_rr': -1.0})
+
+
+# T-004c: Monte-Carlo consistency of the reported covariance ------------------
+MC_SEEDS = 500
+MC_RATES = (10.0, 50.0)
+MC_TOL = 0.2
+
+
+def mc_straight(hz, length=10.0, v=1.0):
+    n = int(round(length / v * hz)) + 1
+    t = np.arange(n) / hz
+    return t, np.stack([v * t, np.zeros(n), np.zeros(n)], axis=1)
+
+
+def mc_circle(hz, r=2.0, w=1.0):
+    n = int(round(2.0 * math.pi / w * hz)) + 1  # one lap
+    t = np.arange(n) / hz
+    return t, np.stack([r * np.cos(w * t), r * np.sin(w * t),
+                        [wrap_angle(a + math.pi / 2) for a in w * t]], axis=1)
+
+
+_MC_CACHE = {}
+
+
+def monte_carlo(traj_fn, hz):
+    """Empirical covariance of the final pose error and mean reported P."""
+    key = (traj_fn.__name__, hz)
+    if key not in _MC_CACHE:
+        t, traj = traj_fn(hz)
+        params = OdomNoiseParams(scale_x=0.0, scale_y=0.0, scale_yaw=0.0,
+                                 yaw_drift_per_m=0.0, cov_floor=0.0)
+        errs, covs = [], []
+        for seed in range(MC_SEEDS):
+            m = OdomNoiseModel(params, seed=seed)
+            for ti, (x, y, th) in zip(t, traj):
+                s = m.update(x, y, th, ti)
+            errs.append((s.x - traj[-1, 0], s.y - traj[-1, 1],
+                         wrap_angle(s.yaw - traj[-1, 2])))
+            covs.append(s.pose_cov)
+        _MC_CACHE[key] = (np.cov(np.array(errs).T), np.mean(covs, axis=0))
+    return _MC_CACHE[key]
+
+
+def assert_cov_close(C, P, tol=MC_TOL):
+    """Diagonal: relative error <= tol. Off-diagonal: error <= tol*sigma_i*sigma_j
+    (i.e. correlation coefficient error <= tol; relative error is ill-defined
+    for terms that are ~0)."""
+    sd = np.sqrt(np.diag(P))
+    for i in range(3):
+        assert abs(C[i, i] / P[i, i] - 1.0) <= tol, (i, C[i, i], P[i, i])
+        for j in range(i + 1, 3):
+            assert abs(C[i, j] - P[i, j]) <= tol * sd[i] * sd[j], (i, j, C[i, j], P[i, j])
+
+
+@pytest.mark.parametrize('hz', MC_RATES)
+@pytest.mark.parametrize('traj_fn', [mc_straight, mc_circle])
+def test_mc_reported_cov_matches_empirical(traj_fn, hz):
+    C, P = monte_carlo(traj_fn, hz)
+    assert_cov_close(C, P)
+
+
+@pytest.mark.parametrize('traj_fn', [mc_straight, mc_circle])
+def test_mc_cov_independent_of_rate(traj_fn):
+    C10, P10 = monte_carlo(traj_fn, MC_RATES[0])
+    C50, P50 = monte_carlo(traj_fn, MC_RATES[1])
+    assert_cov_close(P50, P10)   # reported
+    assert_cov_close(C50, C10)   # empirical
+
+
+def test_default_sigma_y_10m_straight():
+    # Design target from LEAD (T-004c): random sigma_y over 10 m in 0.05..0.1 m.
+    _, P = monte_carlo(mc_straight, 50.0)
+    assert 0.05 <= math.sqrt(P[1, 1]) <= 0.1
+
+
+def test_cov_jacobians_numeric():
+    from al_odom_noise.noise_model import compose, compose_jacobians
+    p, d, h = (0.3, -1.2, 2.9), (0.4, -0.25, 0.3), 1e-6
+    F, G = compose_jacobians(p, d)
+    for k in range(3):
+        e = np.zeros(3)
+        e[k] = h
+        fp = (np.array(compose(tuple(np.add(p, e)), d)) - np.array(compose(p, d))) / h
+        gd = (np.array(compose(p, tuple(np.add(d, e)))) - np.array(compose(p, d))) / h
+        assert np.allclose(F[:, k], fp, atol=1e-5)
+        assert np.allclose(G[:, k], gd, atol=1e-5)
