@@ -1,0 +1,225 @@
+% Active Localization -- 2-page report (T-012a skeleton).
+% Build: report/build.sh  (latexmk + pdflatex) -> report/report.pdf, must be <= 2 pages.
+%
+% Source convention: every number in the text carries a comment `% src: <file>`.
+%   _team/...  = team bus (DECISIONS, FACTS, tasks, knowledge/rnd)
+%   repo paths = relative to the repository root
+% Sections 1-4 are written from the sources; sections 5-6 are TODO placeholders
+% (no results exist yet). Search for "TODO" before submission.
+\documentclass[10pt,twocolumn]{article}
+\usepackage[a4paper,margin=1.5cm,columnsep=0.6cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{mathptmx}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,fit}
+\usepackage[font=footnotesize,labelfont=bf,skip=3pt]{caption}
+\usepackage[compact]{titlesec}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+
+\titleformat{\section}{\normalsize\bfseries}{\thesection}{0.5em}{}
+\titlespacing*{\section}{0pt}{5pt plus 1pt}{2pt}
+\setlist{nosep,leftmargin=1.1em}
+\setlength{\abovedisplayskip}{3pt}\setlength{\belowdisplayskip}{3pt}
+\setlength{\abovedisplayshortskip}{2pt}\setlength{\belowdisplayshortskip}{2pt}
+\setlength{\textfloatsep}{6pt}\setlength{\floatsep}{6pt}
+\setlength{\parskip}{0pt}
+
+\newcommand{\TBD}{\textcolor{red}{--}}
+\newcommand{\TODO}[1]{\textcolor{red}{\textbf{TODO:} #1}}
+\newcommand{\figslot}[3]{% #1 file, #2 width, #3 placeholder text
+  \IfFileExists{#1}{\includegraphics[width=#2]{#1}}{%
+    \fbox{\parbox[c][2.4cm][c]{\dimexpr#2-2\fboxsep-2\fboxrule}{\centering\footnotesize\textcolor{red}{TODO: #3}\\\texttt{\detokenize{#1}}}}}}
+
+\title{\vspace{-1.2cm}\large\bfseries Active Localization in Nav2: Steering Heading and Route toward Fiducial Landmarks\\[-2pt]
+  {\normalsize\mdseries\TODO{title (DIR)}}\vspace{-0.3cm}}
+\author{\small \TODO{authors, affiliation, date, repository link (DIR)}}
+\date{\vspace{-0.9cm}}
+
+\begin{document}
+\maketitle
+
+% =====================================================================
+\section{Problem and testbed}
+% =====================================================================
+An omnidirectional Astribot base in Gazebo localizes with RTAB-Map from 360\textdegree{} lidar ICP plus five STag HD17 fiducials used as landmarks (ids 1--5), and navigates with stock Nav2 (Theta* + MPPI Omni), which drives \emph{facing forward}.
+% src: _team/knowledge/FACTS.md (16.10: planar_move omni, RTAB-Map lidar ICP + HD17 ids 1-5, Nav2 Theta* + MPPI forward_preference)
+The only camera is rigidly mounted on the torso (640$\times$480, HFOV 1.089\,rad), so the robot's heading is its gaze, and an omni base can choose that heading freely along any path.
+% src: _team/knowledge/FACTS.md (16.10 camera torso_rgbd; 18.10 camera mount)
+All markers sit on two shelf rows ($y\approx0.9$ and $3.4$\,m) and face $-y$; a marker is detected only if its projected area $A=(fs/r)^2\cos\theta\ge{\approx}500$\,px$^2$, i.e.\ $r\le 1.88\sqrt{\cos\theta}$\,m, and $r\gtrsim0.7$\,m.
+% src: _team/knowledge/FACTS.md (17.10 landmark export; 18.10 empirical HD17 visibility model, A_min in (485, 508) px^2, r_min in (0.61, 0.71] m)
+The task is to plan \emph{where to look} and \emph{which way to drive} so that the localization error w.r.t.\ ground truth decreases compared with the baseline.
+
+% =====================================================================
+\section{Method}
+% =====================================================================
+\textbf{Two levers} (ADR-001, Option 2): the \emph{yaw} along the planned path and the \emph{route} itself. Both are driven by one pose score $s(x,y,\psi)$.
+% src: _team/DECISIONS.md (ADR-001)
+
+\textbf{Scorer S2*.} For marker $i$ at $p_i$ with normal $n_i$ and camera centre $c$: $\Delta_i=p_i-c$, $r_i=\|\Delta_i\|$, bearing $\beta_i=\mathrm{wrap}(\mathrm{atan2}(\Delta_{i,y},\Delta_{i,x})-\psi)$, $\cos\theta_i=(-\Delta_i\cdot n_i)/r_i$, $A_i=(f s/r_i)^2\max(\cos\theta_i,0)$:
+% src: _team/tasks/T-009_method_impl.md §1
+\begin{align}
+w_i&=\sigma\!\big(k_{\mathrm{fov}}(\tfrac{\mathrm{HFOV}}{2}-|\beta_i|)\big)\,
+    \sigma\!\big(k_A(\tfrac{A_i}{A_{\min}}-1)\big)\nonumber\\
+   &\quad\cdot\sigma\!\big(k_r(r_i-r_{\min})\big)\,\mathrm{occ}_i,\nonumber\\
+n_{\mathrm{eff}}&=\textstyle\sum_i w_i,\qquad s(x,y,\psi)=1-\exp(-n_{\mathrm{eff}}/M),
+\end{align}
+% src: _team/tasks/T-009_method_impl.md §2
+with $\sigma(z)=1/(1+e^{-z})$, $f=528.4$\,px, $s=0.08$\,m, HFOV $=1.089$\,rad, $k_{\mathrm{fov}}=40$\,rad$^{-1}$, $A_{\min}=500$\,px$^2$, $k_A=10$, $r_{\min}=0.70$\,m, $k_r=20$\,m$^{-1}$, $M=1$; $\mathrm{occ}_i=0$ if the segment $c\to p_i$ hits the static map (last 0.20\,m ignored).
+% src: _team/tasks/T-009_method_impl.md §1, §2 (parameter table); A_min, r_min from FACTS.md 18.10 (ENG-10)
+\emph{Why a soft count:} RTAB-Map weights every landmark with a fixed isotropic variance (0.05\,m$^2$), so the position Fisher information is $(\sum_i w_i)/0.05\cdot I$ and det, $\lambda_{\min}$ and trace all reduce to $n_{\mathrm{eff}}$; the bearing/PnP FIM (S1) gives $\sigma_\parallel\le8.4$\,cm inside the detection window, so every detected marker is trusted.
+% src: _team/knowledge/rnd/02_RESEARCH_iter2_math.md §3 C1, C4, "C2 update after ENG-10"; FACTS.md 16.10 (landmark_linear_variance 0.05)
+$M=1$ because usually at most one marker is in view.
+% src: _team/DECISIONS.md (ADR-001), 02_RESEARCH_iter2_math.md C2 update (d)
+
+\textbf{Route lever: costmap layer.} Best-over-yaw score $s^*(x,y)=\max_{\psi\in\{-\pi+2\pi k/36\}}s(x,y,\psi)$ and
+\begin{equation}
+\mathrm{cost}(x,y)=\mathrm{round}\big(c_{\max}\,(1-\min(s^*/s_{\mathrm{ref}},1))^p\big),
+\end{equation}
+$s_{\mathrm{ref}}=1-e^{-1}\approx0.632$, $p=1$, $c_{\max}=40$ (of 252, start value), merged as $\max(\text{master},\text{cost})$ without touching lethal/inscribed/unknown cells. Theta* then prefers the low-cost band in front of the marker rows (Fig.~\ref{fig:smap}) when the detour is cheap.
+% src: _team/tasks/T-009_method_impl.md §3 (c_max = 40 is the start value; final value TODO(ENG) after tuning)
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.86\columnwidth]{figures/s_star.png}
+\caption{Best-over-yaw score $s^*(x,y)$ of S2* (max over 36 yaws, base\_link position; contour $s^*=0.5$). Grey: shelf rows; arrows: marker normals. The two bands are what the route lever attracts the path to.}
+% src: figure from navigation/src/active_localization/tools/score_maps.py (T-009a, Python oracle); 36 yaws = T-009 §3
+\label{fig:smap}
+\end{figure}
+
+\textbf{Yaw lever: heading DP.} The Theta* path is resampled every 0.20\,m and a Viterbi DP over $B=36$ heading bins $\psi_b$ picks one heading per waypoint ($\phi_j$ = travel direction):
+% src: _team/tasks/T-009_method_impl.md §4 (step 0.20 m, B = 36)
+\begin{gather}
+\mathrm{node}(j,b)=-w_s\,\frac{s(x_j,y_j,\psi_b)}{s_{\mathrm{ref}}}+w_f\,(1-\cos(\psi_b-\phi_j)),\nonumber\\
+\mathrm{edge}(j,a{\to}b)=w_{sm}\Delta\psi^2+w_{lim}\max(0,|\Delta\psi|-k\,ds_j)^2,
+\end{gather}
+$\Delta\psi=\mathrm{wrap}(\psi_b-\psi_a)$; start and goal yaw are pinned with cost $10^6(1-\cos)$. $w_s=1.0$, $w_f=0.3$, $w_{sm}=0.5$, $k=1.0$\,rad/m ($\approx$ MPPI $\omega_{\max}/v_{\max}$), $w_{lim}=100$.
+% src: _team/tasks/T-009_method_impl.md §4 (parameter table)
+The heading term is \emph{opportunity-driven}: its weight grows with the quality of the marker that is available, as RAVPP's $Q_f$; with no marker in view the forward prior $w_f$ reproduces the baseline.
+% src: _team/knowledge/rnd/02_RESEARCH_iter2_math.md Block D ("Check of LEAD's 3-lite against RAVPP eq. 15-16"); _team/DECISIONS.md ADR-001 (yaw trigger)
+
+Table~\ref{tab:papers} lists what we take from the four papers and what we change.
+\begin{table}[t]
+\centering\footnotesize
+\setlength{\tabcolsep}{2.5pt}
+\caption{Building blocks taken from prior work.}
+\label{tab:papers}
+% src: _team/tasks/T-009_method_impl.md §8; _team/knowledge/rnd/02_RESEARCH_iter2_math.md Block D; _team/knowledge/rnd/03_GATE1_RND_recommendation.md
+\begin{tabularx}{\columnwidth}{@{}l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+\toprule
+Paper & Taken & Changed (why) \\
+\midrule
+FIF~\cite{fif} & information-based score, yaw only via visibility, sigmoid visibility, ``enough is enough'' saturation & analytic over 5 markers, no voxel field; SE(2); estimator's model + measured detection gate instead of bearing FIM \\
+RAVPP~\cite{ravpp} & route repulsion $\to$ cost layer; heading term with quality-proportional weight $\to$ DP node cost & our scorer; no APF-in-KB-RRT, no MPC; omni base \\
+ActLoc~\cite{actloc} & per-waypoint yaw choice with a smoothness term & analytic scorer, no network; Viterbi instead of greedy; yaw-rate limit \\
+LWL~\cite{lwl} & ``pixels matter'' $\to$ projected-area gate & no learning (no visual-feature SfM; RTAB-Map uses none) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% =====================================================================
+\section{Integration in Nav2}
+% =====================================================================
+Both levers are native C++ Nav2 plugins (Fig.~\ref{fig:nav2}), so the behaviour tree and its recoveries are \emph{identical} to the baseline. \texttt{LocalizabilityLayer} is an extra global-costmap layer (computed once per map geometry). \texttt{LocalizationAwarePlanner} is registered under the same planner id as the baseline, wraps Theta* and writes the DP headings into the path. MPPI follows them with \texttt{PathAlignCritic.use\_path\_orientations: true} and the forward-facing critics (PathAngle, PreferForward) disabled; Humble's MPPI (1.1.20) provides this parameter. All changes live in a separate active-mode params file; the baseline params are untouched. A Python package with the same formulas serves as test oracle (golden fixtures) and produced Fig.~\ref{fig:smap}.
+% src: _team/DECISIONS.md ADR-001 (integration), _team/tasks/T-009_method_impl.md §3-§5; FACTS.md 18.10 (ros-humble-nav2-mppi-controller 1.1.20 has use_path_orientations)
+% TODO(LEAD): confirm after GATE-3 that the C++ plugins (not the Python fallback al_navigator) were used in the runs.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[font=\scriptsize,
+  box/.style={draw,rounded corners=1pt,align=center,inner sep=2pt,minimum height=6mm},
+  ours/.style={box,fill=blue!12,draw=blue!60!black},
+  lab/.style={font=\tiny,inner sep=1pt},
+  >={Stealth[length=1.5mm]}]
+\node[box]  (bt)    at (0,0)     {BT navigator\\(unchanged)};
+\node[ours] (lap)   at (2.85,0)  {\texttt{LocalizationAware-}\\\texttt{Planner}: Theta* + DP};
+\node[box]  (mppi)  at (5.9,0)   {MPPI Omni\\(follows $\psi$)};
+\node[ours] (layer) at (2.85,-1.1) {global costmap +\\\texttt{LocalizabilityLayer}};
+\node[box]  (lm)    at (0,-1.1)  {landmarks.yaml\\(map export)};
+\node[lab]  (cmd)   at (5.9,-1.1) {\texttt{cmd\_vel} $\to$ robot};
+\draw[->] (bt) -- node[lab,above]{goal} (lap);
+\draw[->] (lap) -- node[lab,above]{path + $\psi_j$} (mppi);
+\draw[->] (layer) -- node[lab,right]{cost} (lap);
+\draw[->] (lm) -- node[lab,above]{$p_i$} (layer);
+\draw[->] (mppi) -- (cmd);
+\end{tikzpicture}
+\caption{Integration. Blue: our plugins (C++); everything else is stock Nav2 Humble with the baseline BT.}
+\label{fig:nav2}
+\end{figure}
+
+% =====================================================================
+\section{Experiment}
+% =====================================================================
+\textbf{Modes.} \emph{Baseline}: stock Nav2 (\texttt{nav2\_params\_v2.yaml}, BT v3) unchanged. \emph{Active}: the same stack plus the two plugins (separate params file). \emph{Control}: the active stack with a \texttt{null} scorer (layer cost 0, DP = forward prior); it must match the baseline and bounds any effect of the plugin plumbing itself.
+% src: _team/DECISIONS.md D-2; _team/tasks/T-009_method_impl.md §5
+\textbf{Protocol.} Every run restarts the simulator, localization and Nav2 from a pristine copy of the map database, the same spawn pose $(-2.0,-0.5)$ and a 0.6\,m nudge before the first goal (RTAB-Map otherwise initialises from the last pose stored in the database); the same goal list and the same seed list (run $i$ uses seed $42+i-1$) in all modes; $\ge3$ runs per mode.
+% src: _team/DECISIONS.md D-2; FACTS.md 16.10 (spawn), 18.10 (DB re-initialisation); scripts/README.md (seed0 = 42); _team/tasks/T-011a_metrics_tooling.md (3 modes x >= 3 runs)
+\TODO{ENG: final goals (scenario file), number of runs, run duration.}
+\textbf{Odometry noise.} Gazebo odometry is perfect, so drift is injected: a random walk whose variance grows with distance and rotation ($\sigma_x\approx5$\,cm per 10\,m), 1\,\% scale error and 0.01\,rad/m yaw drift, from the same seeds in all modes.
+% src: _team/DECISIONS.md D-3; navigation/src/al_odom_noise/config/odom_noise.yaml (DEFAULT values: k_xx 2.5e-4 m^2/m, scale_x/y 0.01, yaw_drift_per_m 0.01)
+\TODO{ENG: replace with the calibrated values actually used (D-3).}
+\textbf{Metrics.} Ground truth = Gazebo pose, estimate = \texttt{map}$\to$\texttt{base\_link}. APE and RPE (translation, $xy$, RPE every 1\,m) with evo 1.38 and \emph{no alignment}, since Umeyama alignment hides drift.
+% src: eval/README.md; FACTS.md 16.10 (evo 1.38, alignment hides drift: 0.173 -> 0.072 m on synthetic data)
+Secondary: accepted landmark detections (total, per metre), \texttt{map}$\to$\texttt{odom} corrections (max step, max magnitude), time, path length, goals reached.
+% src: _team/DECISIONS.md D-2 (time, path length); _team/tasks/T-011a_metrics_tooling.md
+
+% =====================================================================
+\section{Results}
+% =====================================================================
+\TODO{RND/LEAD (T-011): 2--3 sentences with the main numbers, per-run table, effect size (no significance claims with 3 runs).}
+% src (3 runs): _team/knowledge/ADR-001_options_DRAFT.md §5 ("3+3 runs prove little statistically"); _team/tasks/T-011a_metrics_tooling.md
+
+\begin{table}[h]
+\centering\footnotesize
+\caption{Per-mode results, mean $\pm$ std over runs (no alignment). \TODO{placeholder until \texttt{eval\_out/summary\_table.tex} exists (T-011a).}}
+\label{tab:results}
+% Generated by T-011a (eval/ summary -> eval_out/summary_table.tex at the repo root).
+\IfFileExists{../eval_out/summary_table.tex}{\input{../eval_out/summary_table.tex}}{%
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Mode & APE rmse [m] & RPE rmse [m] & detections/m & time [s] \\
+\midrule
+baseline & \TBD & \TBD & \TBD & \TBD \\
+active   & \TBD & \TBD & \TBD & \TBD \\
+control  & \TBD & \TBD & \TBD & \TBD \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\begin{figure}[h]
+\centering
+\figslot{figures/trajectories.pdf}{0.49\columnwidth}{trajectories overlay on $s^*$ (T-011a)}\hfill
+\figslot{figures/ape_vs_time.pdf}{0.49\columnwidth}{APE vs time per mode (T-011a)}
+\caption{\TODO{Left: estimated (thick) and ground-truth (thin) trajectories per mode on top of $s^*$. Right: APE vs time, all runs, mean per mode.}}
+\label{fig:results}
+\end{figure}
+
+% =====================================================================
+\section{Discussion, limitations, improvements}
+% =====================================================================
+\begin{itemize}
+\item \TODO{RND/LEAD: does active beat baseline on APE/RPE; does control match baseline; where along the path the effect appears.}
+\item \TODO{Cost of the method: extra time/path length from turning and detours (the RPE rotation term penalises the turning active mode, D-3).}
+\item \TODO{Limitations: simulation only; 5 known markers; % src: FACTS.md 17.10 (ids 1-5)
+   detection model is a fit on one marker; lidar ICP may dominate the estimate; few runs.}
+\item \TODO{Improvements: need-driven yaw trigger (ablation, our change); MPPI heading critic (RAVPP MPC term); learned scorer (ActLoc/LWL) with visual features.}
+\end{itemize}
+
+\vspace{-2pt}
+\footnotesize
+\begin{thebibliography}{9}\setlength{\itemsep}{0pt}
+\bibitem{fif} Z.~Zhang, D.~Scaramuzza, ``Fisher Information Field: an Efficient and Differentiable Map for Perception-aware Planning,'' arXiv:2008.03324, 2020.
+\bibitem{lwl} L.~Di~Giammarino, B.~Sun, G.~Grisetti, M.~Pollefeys, H.~Blum, D.~Barath, ``Learning Where to Look: Self-supervised Viewpoint Selection for Active Localization using Geometrical Information,'' arXiv:2407.15593, 2024.
+\bibitem{ravpp} S.~Barlakas et al., ``Robot Active Vision-Based Path Planning for Localization Improvement in Indoor Environments,'' in Proc.\ IEEE/RSJ IROS, 2024.
+\bibitem{actloc} J.~Li, B.~Sun, L.~Di~Giammarino, H.~Blum, M.~Pollefeys, ``ActLoc: Learning to Localize on the Move via Active Viewpoint Selection,'' in Proc.\ CoRL, 2025.
+\end{thebibliography}
+% src (references): first pages of the PDFs in docs/ (arXiv ids, IROS 2024 header, CoRL 2025 footer)
+
+\end{document}
