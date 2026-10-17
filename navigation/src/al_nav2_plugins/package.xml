@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>al_nav2_plugins</name>
+  <version>0.1.0</version>
+  <description>Native Nav2 plugins for localization-aware navigation (ADR-001): LocalizabilityLayer (route lever, costmap layer) and LocalizationAwarePlanner (yaw lever, Theta* wrapper with a heading DP).</description>
+  <maintainer email="matvey.razgulov@gmail.com">Matvey Razgulov</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>geometry_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>nav2_core</depend>
+  <depend>nav2_costmap_2d</depend>
+  <depend>nav2_util</depend>
+  <depend>pluginlib</depend>
+  <depend>rclcpp</depend>
+  <depend>rclcpp_lifecycle</depend>
+  <depend>tf2_ros</depend>
+  <depend>yaml-cpp</depend>
+
+  <test_depend>ament_cmake_gtest</test_depend>
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+    <nav2_costmap_2d plugin="${prefix}/layer_plugin.xml"/>
+    <nav2_core plugin="${prefix}/planner_plugin.xml"/>
+  </export>
+</package>

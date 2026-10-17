@@ -1,0 +1,5 @@
+<library path="al_nav2_plugins">
+  <class name="al_nav2_plugins/LocalizabilityLayer" type="al_nav2_plugins::LocalizabilityLayer" base_class_type="nav2_costmap_2d::Layer">
+    <description>Static costmap layer: cost = c_max * (1 - s*/s_ref), where s* is the best-over-yaw marker detectability score of a cell (route lever of the active localization method).</description>
+  </class>
+</library>
