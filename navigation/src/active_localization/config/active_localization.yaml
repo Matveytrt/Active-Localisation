@@ -1,0 +1,60 @@
+# active_localization — single config file (loaded by config.py).
+# Relative paths are resolved against this file's directory.
+
+landmarks:
+  # RTAB-Map export of the HD17 landmark poses (map frame). Installed path in
+  # the navigation container [unverified: ENG checks]:
+  file: /home/app/ros2_ws/src/rtabmap_landmarks/config/landmarks.yaml
+  frame_id: map
+  # Axis of the landmark frame that points out of the marker face.
+  # [unverified] — set after T-003; null disables the facing check.
+  normal_axis: null
+  ids: [1, 2, 3, 4, 5]
+
+camera:                 # torso_rgbd (FACTS)
+  hfov: 1.089
+  min_range: 0.3
+  max_range: 9.0        # RTAB-Map landmark max range
+  offset_x: 0.0         # [unverified] camera offset in base_link; ENG reads from TF
+  offset_y: 0.0
+  offset_yaw: 0.0
+  max_incidence: 1.2
+
+scorer:
+  # 'null' = control (behaves like baseline); 'visible_count' = reference.
+  # The method scorer is registered in scorers/__init__.py (T-009, GATE-1).
+  name: visible_count
+  params:
+    soft: 0.1
+    weighting: count
+    saturate: 2.0       # "enough is enough": 2 markers in view is as good as 5
+
+yaw_planner:
+  n_bins: 36
+  step: 0.25
+  w_score: 1.0
+  w_forward: 0.5
+  w_smooth: 0.5
+  w_limit: 100.0
+  max_dyaw_per_m: 1.0
+  pin_start: true
+  pin_goal: true
+
+cost_field:
+  yaw_bins: 36
+  good_score: 2.0
+  cost_max: 60
+  power: 1.0
+
+navigator:
+  action_name: al/navigate_to_pose
+  planner_action: compute_path_to_pose
+  controller_action: follow_path
+  planner_id: GridBased
+  controller_id: FollowPath
+  replan_hz: 1.0          # same as the baseline BT RateController
+  global_frame: map
+  robot_frame: base_link
+  server_timeout_s: 10.0
+  max_planner_failures: 5
+  max_controller_failures: 3
