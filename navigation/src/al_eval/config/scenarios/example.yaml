@@ -1,0 +1,17 @@
+# Example scenario for al_eval scenario_runner / scripts/run_experiment.sh.
+#
+# PLACEHOLDER goals: ENG replaces after mapping (T-002).
+# The goals below are NOT checked against the map: they are a small loop
+# around the map origin (RTAB-Map's map frame usually starts at the robot
+# pose when mapping started; the robot spawns at world (-2.0, -0.5), yaw 0).
+# Pick real goals in free space from the built map, ideally with stretches
+# where the HD17 landmarks are / are not visible.
+name: example
+frame_id: map          # only "map" is accepted by default
+goal_timeout_s: 120    # per goal, wall-clock seconds; on timeout the goal is cancelled
+settle_s: 2.0          # wait after localization is up before the first goal
+goals:                 # x, y [m], yaw [rad] in frame_id
+  - {x: 1.0, y: 0.0, yaw: 0.0}       # PLACEHOLDER
+  - {x: 1.0, y: 1.0, yaw: 1.5708}    # PLACEHOLDER
+  - {x: 0.0, y: 1.0, yaw: 3.1416}    # PLACEHOLDER
+  - {x: 0.0, y: 0.0, yaw: 0.0}       # PLACEHOLDER (back to start)
