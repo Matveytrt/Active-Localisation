@@ -18,7 +18,7 @@ def _raw(real_path):
 
 def test_shipped_config_builds(real_landmarks_path):
     cfg = build_config(_raw(real_landmarks_path))
-    assert cfg.scorer.name == 'visible_count'
+    assert cfg.scorer.name == 'marker_soft_count'
     assert len(cfg.scorer.lm.ids) == 5
     assert cfg.navigator['action_name'] == 'al/navigate_to_pose'
 
@@ -38,4 +38,4 @@ def test_load_config_relative_path(tmp_path, real_landmarks_path):
     raw = _raw(os.path.relpath(real_landmarks_path, tmp_path))
     p = tmp_path / 'c.yaml'
     p.write_text(yaml.safe_dump(raw))
-    assert load_config(str(p)).scorer.name == 'visible_count'
+    assert load_config(str(p)).scorer.name == 'marker_soft_count'

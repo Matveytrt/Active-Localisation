@@ -12,11 +12,23 @@ potential and FIF's information potential do the same job). Occupancy is kept
 well below 100: with `trinary_costmap: false` the StaticLayer scales
 0..100 linearly to 0..254, and 254 would be LETHAL. [unverified: ENG checks
 the StaticLayer scaling and `use_maximum` in Humble.]
+
+`layer_cost_grid` is the spec T-009 §3 oracle for the C++ LocalizabilityLayer
+(costmap units 0..252, uint8):
+
+    cost = round(c_max * (1 - min(s* / s_ref, 1)) ** p),  s_ref = 1 - e^-1
+
+with s* the best score over yaw in {-pi + 2 pi k / yaw_bins}. round() is
+half away from zero (= std::round for cost >= 0), i.e. floor(v + 0.5).
 """
 
+import math
 from dataclasses import dataclass
 
 import numpy as np
+
+S_REF = 1.0 - math.exp(-1.0)
+LAYER_COST_MAX = 252        # highest cost the layer may write (253+ = INSCRIBED/LETHAL/NO_INFO)
 
 
 @dataclass
@@ -69,3 +81,27 @@ def cost_grid(scorer, grid: GridSpec, params: CostFieldParams = CostFieldParams(
     good = max(params.good_score, 1e-9)
     deficit = 1.0 - np.clip(best / good, 0.0, 1.0)
     return np.rint(params.cost_max * deficit ** params.power).astype(np.int8)
+
+
+def layer_cost_from_score(s_star, c_max=40, power=1.0, s_ref=S_REF) -> np.ndarray:
+    """Spec §3 cost (uint8, 0..c_max) from best-over-yaw scores s*."""
+    if not 0 <= int(c_max) <= LAYER_COST_MAX:
+        raise ValueError(f'c_max must be in [0, {LAYER_COST_MAX}]')
+    if s_ref <= 0 or power <= 0:
+        raise ValueError('s_ref and power must be > 0')
+    s_star = np.asarray(s_star, float)
+    deficit = 1.0 - np.minimum(np.maximum(s_star, 0.0) / s_ref, 1.0)
+    return np.floor(int(c_max) * deficit ** power + 0.5).astype(np.uint8)
+
+
+def layer_cost_grid(scorer, grid: GridSpec, c_max=40, power=1.0, yaw_bins=36,
+                    s_ref=S_REF) -> np.ndarray:
+    """Spec §3 LocalizabilityLayer costs (uint8), shape (height, width), row = y.
+
+    Evaluated on every cell. Note for the C++ layer: with the spec §2
+    defaults, s* stays non-negligible beyond r_max + 0.5 m (cost 38 at 2.48 m,
+    < 40 up to 2.80 m from the nearest marker on the room grid), so a cut-off
+    that writes c_max needs >= 2.5 m to stay within +-1 of this oracle.
+    """
+    return layer_cost_from_score(best_score_grid(scorer, grid, yaw_bins),
+                                 c_max=c_max, power=power, s_ref=s_ref)
