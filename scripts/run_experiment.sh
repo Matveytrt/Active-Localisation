@@ -59,10 +59,12 @@ REPO_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 : "${NAV_LAUNCH_BASELINE:=ros2 launch nav2_planner_custom navigation_launch.py}"
 # T-009: point params_file at the active-mode Nav2 params once they exist.
 : "${NAV_LAUNCH_ACTIVE:=ros2 launch nav2_planner_custom navigation_launch.py}"
-# T-009: the active node does not exist yet. A real (non --dry-run) active
-# run refuses to start while this is still the placeholder.
-ACTIVE_LAUNCH_PLACEHOLDER='ros2 launch al_active active.launch.py'
-: "${ACTIVE_LAUNCH:=$ACTIVE_LAUNCH_PLACEHOLDER}"
+# Active node from navigation/src/active_localization (T-008, PR #2);
+# the scorer is chosen with scorer:=<name> (T-009).
+: "${ACTIVE_LAUNCH:=ros2 launch active_localization active_localization.launch.py}"
+# NavigateToPose action the runner sends goals to, per mode.
+: "${ACTION_BASELINE:=/navigate_to_pose}"
+: "${ACTION_ACTIVE:=/al/navigate_to_pose}"
 : "${RECORDER_LAUNCH:=ros2 launch al_eval traj_recorder.launch.py run_name:=@RUN_NAME@ output_dir:=@RUNS_DIR@}"
 # Extra arguments for scenario_runner (e.g. --server-timeout 180).
 : "${RUNNER_ARGS:=}"
@@ -132,16 +134,14 @@ else
                   "$SCENARIO" | head -n 1)
 fi
 
-if [[ $MODE == active && $ACTIVE_LAUNCH == "$ACTIVE_LAUNCH_PLACEHOLDER" ]]; then
-  if [[ $DRY_RUN -eq 1 ]]; then
-    echo "# WARNING: ACTIVE_LAUNCH is the T-009 placeholder" >&2
-  else
-    die "ACTIVE_LAUNCH is still the T-009 placeholder ('$ACTIVE_LAUNCH'); set ACTIVE_LAUNCH to the real active-mode launch command" 2
-  fi
+if [[ $MODE == active && $NAV_LAUNCH_ACTIVE == "$NAV_LAUNCH_BASELINE" ]]; then
+  # Without config/nav2_active_overrides.yaml MPPI ignores the path headings
+  # written by al_navigator (T-009 wires the active params in).
+  echo "# WARNING: NAV_LAUNCH_ACTIVE equals NAV_LAUNCH_BASELINE (active Nav2 params not applied yet)" >&2
 fi
 
-if [[ $MODE == active ]]; then NAV_LAUNCH=$NAV_LAUNCH_ACTIVE
-else NAV_LAUNCH=$NAV_LAUNCH_BASELINE; fi
+if [[ $MODE == active ]]; then NAV_LAUNCH=$NAV_LAUNCH_ACTIVE; ACTION=$ACTION_ACTIVE
+else NAV_LAUNCH=$NAV_LAUNCH_BASELINE; ACTION=$ACTION_BASELINE; fi
 
 DC=(docker compose -f "$COMPOSE_FILE")
 
@@ -349,8 +349,8 @@ for ((i = 1; i <= RUNS; i++)); do
   # 3.+4. readiness + goals (scenario_runner), then stop the recorder
   DEAD_STACKS=''
   if check_alive; then
-    echo "# scenario_runner (checks /navigate_to_pose + TF map->base_link)"
-    RUNNER_CMD="ros2 run al_eval scenario_runner --scenario $C_RUN/scenario.yaml --out $C_RUN/result.yaml --run-name $RUN --mode $MODE --seed $SEED${RUNNER_ARGS:+ $RUNNER_ARGS} --ros-args -p use_sim_time:=true"
+    echo "# scenario_runner (checks $ACTION + TF map->base_link)"
+    RUNNER_CMD="ros2 run al_eval scenario_runner --scenario $C_RUN/scenario.yaml --out $C_RUN/result.yaml --run-name $RUN --mode $MODE --seed $SEED --action $ACTION${RUNNER_ARGS:+ $RUNNER_ARGS} --ros-args -p use_sim_time:=true"
     if run "${DC[@]}" exec -T "$NAV_SVC" bash -c \
          "$ROS_SETUP && $RUNNER_CMD 2>&1 | tee $C_LOG/scenario_runner.log; exit \${PIPESTATUS[0]}"; then
       RUNNER_RC=0

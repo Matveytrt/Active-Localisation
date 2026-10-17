@@ -17,7 +17,7 @@ docker compose exec navigation bash -c \
 S=navigation/src/al_eval/config/scenarios/example.yaml   # PLACEHOLDER goals
 scripts/run_experiment.sh --mode baseline --runs 3 --scenario $S --seed0 42 --dry-run
 scripts/run_experiment.sh --mode baseline --runs 3 --scenario $S --seed0 42
-ACTIVE_LAUNCH='ros2 launch <pkg> <file>' \
+NAV_LAUNCH_ACTIVE='ros2 launch nav2_planner_custom navigation_launch.py <active params, T-009>' \
   scripts/run_experiment.sh --mode active --runs 3 --scenario $S --seed0 42
 ```
 
