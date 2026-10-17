@@ -116,3 +116,70 @@ GT — окружность r = 2 м, 60 с, 50 Гц; est 10 Гц со сдви�
 `shift` = +0.10 м по x; `noise` = N(0, σ²) по x и y (APE RMSE ≈ σ√2);
 `drift` = +5 мм/с по x. Отдельный прогон:
 `make_synthetic.py OUT --case noise --sigma 0.02 --seed 7 --name active_1`.
+
+## 6. Experiment summary and plots (3 modes, secondary metrics) — T-011a
+
+Run dirs `<mode>_<NN>` for the modes `baseline`, `active`, `control` (D-2),
+each processed by `run_evo.sh` first. Besides `gt.tum` / `est.tum` the
+recorder now also writes (see `navigation/src/al_eval/README.md`):
+
+| file | content |
+|---|---|
+| `landmarks.csv` | `stamp,n_detections,ids`, one row per `/landmark_detections` message (`rtabmap_msgs/LandmarkDetections` from `tf_to_fiducial`; ids `;`-separated) |
+| `map_odom.tum` | TF `map -> odom` (the RTAB-Map correction) at `rate_hz`, TUM, duplicate stamps skipped |
+
+```bash
+for r in ~/al_runs/*_0?; do eval/run_evo.sh "$r"; done
+python3 eval/summarize.py ~/al_runs --out results/            # tables
+python3 eval/plots.py ~/al_runs --out results/plots --score-map  # figures
+```
+
+`summarize.py RUNS_ROOT` (or `--runs DIR ...`) groups runs by `mode` in
+`run.yaml` (fallback: the dir name prefix before `_<NN>`) and writes:
+
+| file | content |
+|---|---|
+| `summary.csv` | one row per run: APE rmse/mean/max, RPE rmse, duration, GT path length, goals succeeded/total, detections (total, per m, % of time with ≥ 1 detection in the last `--window` s, default 1 s), map→odom max step and max correction (m, deg), notes on missing inputs |
+| `summary_modes.csv` | per mode: `<metric>_{mean,std,min,max}` (std = sample std, ddof 1) |
+| `summary.md` | mode table (mean ± std), [min, max] table, change vs baseline, per-run table |
+| `summary_table.tex` | compact booktabs `tabular` for the report (`\usepackage{booktabs}`, then `\input{summary_table.tex}`) |
+
+Definitions:
+
+* duration = sum of `duration_sim_s` of the goals in `result.yaml`
+  (fallback: time span of `gt.tum`, noted in `duration_source`);
+  path length = integrated xy distance of `gt.tum`.
+* detection coverage is measured over the GT time span `[t_gt0, t_gt1]`.
+* map→odom step = largest change between consecutive samples; correction
+  = largest |map→odom − first sample| (`--map-odom-ref first`, removes the
+  constant spawn offset) or |map→odom| (`--map-odom-ref zero`). Both are
+  properties of the transform, not of the robot pose jump.
+* Missing `evo_<align>/`, `result.yaml`, `landmarks.csv` or
+  `map_odom.tum` give empty cells plus a warning. Different alignments
+  across runs are an error (as in `aggregate.py`; `--allow_mixed_alignment`).
+* `aggregate.py` is unchanged and still works for APE/RPE only.
+
+`plots.py RUNS_ROOT` writes PNG + PDF into `--out` (default `ROOT/plots`):
+`trajectories` (one panel per mode, GT thin dashed, est thick, colour =
+run index), `ape_vs_time` (all runs + mean over runs, from
+`evo_<align>/ape.zip`), `detections_path` (GT position at each detection,
+coloured by `n_detections`). Background: `--score-map` (S2* s* map computed
+with `navigation/src/active_localization/tools`) or `--background
+FILE.png|FILE.npy --extent XMIN XMAX YMIN YMAX` (PNG row 0 = top; `.npy`
+row 0 = `ymin`, the `score_maps.py` convention).
+
+Self-check on synthetic data (3 modes × 3 runs, all files of a real run):
+
+```bash
+python3 eval/make_synthetic.py /tmp/exp --case experiment   # [--runs N --seed S]
+for r in /tmp/exp/*_0?; do eval/run_evo.sh "$r" --plot_format none; done
+python3 eval/summarize.py /tmp/exp && python3 eval/plots.py /tmp/exp --score-map
+```
+
+The synthetic model (see the `make_synthetic.py` docstring) is a toy:
+active sees landmarks on more of the lap, so its APE is lower and its
+detections per metre higher; control behaves like baseline.
+
+Tests (no ROS; evo is mocked, plus one end-to-end test with the real evo
+that is skipped if `evo_ape` is missing):
+`python3 -m pytest -q eval navigation/src/al_eval/test`.
