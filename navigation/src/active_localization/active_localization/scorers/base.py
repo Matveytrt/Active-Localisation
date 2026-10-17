@@ -38,10 +38,11 @@ class Scorer(ABC):
         """Localizability of pose(s); see module docstring."""
 
     # ---- shared geometry -------------------------------------------------
-    def observe(self, x, y, yaw) -> Observation:
-        """Camera->landmark geometry for every pose and every landmark.
+    def camera_pose(self, x, y, yaw):
+        """Camera centre and optical-axis yaw in the map frame.
 
-        Output arrays have shape broadcast(x, y, yaw).shape + (L,).
+        c = (x, y) + R(yaw) (offset_x, offset_y), camera yaw = yaw + offset_yaw.
+        Outputs have shape broadcast(x, y, yaw).shape.
         """
         x, y, yaw = np.broadcast_arrays(np.asarray(x, float),
                                         np.asarray(y, float),
@@ -49,7 +50,14 @@ class Scorer(ABC):
         c, s = np.cos(yaw), np.sin(yaw)
         cx = x + c * self.cam.offset_x - s * self.cam.offset_y
         cy = y + s * self.cam.offset_x + c * self.cam.offset_y
-        cyaw = yaw + self.cam.offset_yaw
+        return cx, cy, yaw + self.cam.offset_yaw
+
+    def observe(self, x, y, yaw) -> Observation:
+        """Camera->landmark geometry for every pose and every landmark.
+
+        Output arrays have shape broadcast(x, y, yaw).shape + (L,).
+        """
+        cx, cy, cyaw = self.camera_pose(x, y, yaw)
         dx = self.lm.xy[:, 0] - cx[..., None]
         dy = self.lm.xy[:, 1] - cy[..., None]
         rng = np.hypot(dx, dy)

@@ -58,6 +58,7 @@ class YawPlan:
     yaw: np.ndarray      # (N,)  chosen headings
     score: np.ndarray    # (N,)  scorer value at the chosen headings
     travel: np.ndarray   # (N,)  direction of travel
+    bin_idx: Optional[np.ndarray] = None   # (N,) chosen bin per waypoint (before pinning)
 
 
 def plan_yaws(xy, scorer, params: YawPlannerParams = YawPlannerParams(),
@@ -69,7 +70,7 @@ def plan_yaws(xy, scorer, params: YawPlannerParams = YawPlannerParams(),
     travel = path_headings(pts)
     if n == 0:
         z = np.zeros(0)
-        return YawPlan(pts, z, z, z)
+        return YawPlan(pts, z, z, z, np.zeros(0, dtype=int))
 
     bins = -np.pi + 2.0 * np.pi * np.arange(p.n_bins) / p.n_bins       # (B,)
     scale = max(float(scorer.score_scale), 1e-9)
@@ -106,4 +107,4 @@ def plan_yaws(xy, scorer, params: YawPlannerParams = YawPlannerParams(),
     if p.pin_goal and goal_yaw is not None:
         yaw[-1] = float(wrap_angle(goal_yaw))
     chosen = s[np.arange(n), idx]
-    return YawPlan(xy=pts, yaw=yaw, score=chosen, travel=travel)
+    return YawPlan(xy=pts, yaw=yaw, score=chosen, travel=travel, bin_idx=idx)
