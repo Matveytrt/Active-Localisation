@@ -17,8 +17,10 @@
 #
 # Per run i (name <mode>_<NN>, e.g. baseline_01, as in eval/README.md):
 #   1. stop every launched stack in both containers (pkill, no compose down)
-#   2. start GAZEBO, LOC, NOISE (seed), NAV, RECORDER (run_name), [ACTIVE]
-#      in the background inside the containers, with startup pauses
+#   2. restore the pristine RTAB-Map DB; start GAZEBO (+POST_GAZEBO_CMD), LOC,
+#      NOISE (seed); start-up nudge (scripts/al_nudge.py, both modes, D-2);
+#      start NAV, RECORDER (run_name), [ACTIVE if ACTIVE_LAUNCH is set] in the
+#      background inside the containers, with startup pauses
 #   3. readiness is checked by scenario_runner itself (action server
 #      /navigate_to_pose and TF map->base_link, with timeouts)
 #   4. run scenario_runner (foreground); SIGINT the recorder (meta.yaml);
@@ -57,14 +59,30 @@ REPO_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 : "${LOC_LAUNCH:=ros2 launch rtabmap_landmarks complete_system.launch.py localization:=true}"
 : "${NOISE_LAUNCH:=ros2 launch al_odom_noise odom_noise.launch.py seed:=@SEED@}"
 : "${NAV_LAUNCH_BASELINE:=ros2 launch nav2_planner_custom navigation_launch.py}"
-# T-009: point params_file at the active-mode Nav2 params once they exist.
-: "${NAV_LAUNCH_ACTIVE:=ros2 launch nav2_planner_custom navigation_launch.py}"
-# Active node from navigation/src/active_localization (T-008, PR #2);
-# the scorer is chosen with scorer:=<name> (T-009).
-: "${ACTIVE_LAUNCH:=ros2 launch active_localization active_localization.launch.py}"
+# T-009 / ADR-001: active mode = native Nav2 plugins (al_nav2_plugins) selected by
+# a separate params file; BT, recoveries and the action are the baseline ones.
+# The file is read from src (mounted), so no rebuild is needed after editing it.
+: "${NAV_PARAMS_ACTIVE:=/home/app/ros2_ws/src/nav2_planner_custom/config/nav2_params_active.yaml}"
+: "${NAV_LAUNCH_ACTIVE:=ros2 launch nav2_planner_custom navigation_launch.py params_file:=$NAV_PARAMS_ACTIVE}"
+# Optional extra stack in active mode (Python fallback al_navigator, T-008):
+# empty = not started (default with the C++ plugins).
+: "${ACTIVE_LAUNCH:=}"
 # NavigateToPose action the runner sends goals to, per mode.
 : "${ACTION_BASELINE:=/navigate_to_pose}"
-: "${ACTION_ACTIVE:=/al/navigate_to_pose}"
+: "${ACTION_ACTIVE:=/navigate_to_pose}"
+
+# RTAB-Map DB (ENG, FACTS 18.10): localization mode starts from the last
+# localization saved in the DB and writes to the DB, so every run starts from a
+# pristine copy (made once right after mapping; see scripts/README.md).
+: "${DB_PATH:=/home/app/ros2_ws/maps/astribot_sim.db}"
+: "${PRISTINE_DB:=/home/app/ros2_ws/maps/astribot_sim.pristine.db}"
+# Start-up nudge (ENG, T-002): RTAB-Map publishes no map->odom until the robot
+# moves, and Nav2 never activates without it. Same in both modes (D-2).
+: "${NUDGE_ENABLE:=1}"
+: "${NUDGE_ARGS:=--odom /odom_gt --dist 0.6 --tries 3}"
+# Run in the gazebo container after GAZEBO_STARTUP_S (rsp.launch.py always
+# starts RViz; it costs ~0.8 CPU core). Empty = nothing.
+: "${POST_GAZEBO_CMD:=pkill -f [r]viz2}"
 : "${RECORDER_LAUNCH:=ros2 launch al_eval traj_recorder.launch.py run_name:=@RUN_NAME@ output_dir:=@RUNS_DIR@}"
 # Extra arguments for scenario_runner (e.g. --server-timeout 180).
 : "${RUNNER_ARGS:=}"
@@ -89,7 +107,7 @@ REPO_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 : "${KILL_PATTERN:=[r]os2 launch|[-]-ros-args|[g]zserver|[g]zclient}"
 
 # ===================================================================== args
-usage() { sed -n '2,36p' "$0"; exit "${1:-0}"; }
+usage() { sed -n '2,37p' "$0"; exit "${1:-0}"; }
 
 MODE=''; RUNS=''; SCENARIO=''; SEED0=42; OUT="$HOME/al_runs"
 DRY_RUN=0; OVERWRITE=0
@@ -135,9 +153,7 @@ else
 fi
 
 if [[ $MODE == active && $NAV_LAUNCH_ACTIVE == "$NAV_LAUNCH_BASELINE" ]]; then
-  # Without config/nav2_active_overrides.yaml MPPI ignores the path headings
-  # written by al_navigator (T-009 wires the active params in).
-  echo "# WARNING: NAV_LAUNCH_ACTIVE equals NAV_LAUNCH_BASELINE (active Nav2 params not applied yet)" >&2
+  echo "# WARNING: NAV_LAUNCH_ACTIVE equals NAV_LAUNCH_BASELINE (active Nav2 params not applied)" >&2
 fi
 
 if [[ $MODE == active ]]; then NAV_LAUNCH=$NAV_LAUNCH_ACTIVE; ACTION=$ACTION_ACTIVE
@@ -261,14 +277,18 @@ git_dirty: $GIT_DIRTY
 start_wall: $(yq "$START_WALL")
 end_wall: $(yq "$END_WALL")
 runner_exit_code: $RUNNER_RC
+nudge_exit_code: $NUDGE_RC
 error: $(yq "$RUN_ERROR")
+db: {path: $(yq "$DB_PATH"), restored_from: $(yq "$PRISTINE_DB")}
 launch:
   gazebo: $(yq "$(subst "$GAZEBO_LAUNCH")")
   localization: $(yq "$(subst "$LOC_LAUNCH")")
   odom_noise: $(yq "$(subst "$NOISE_LAUNCH")")
   navigation: $(yq "$(subst "$NAV_LAUNCH")")
   recorder: $(yq "$(subst "$RECORDER_LAUNCH")")
-  active: $(if [[ $MODE == active ]]; then yq "$(subst "$ACTIVE_LAUNCH")"; else echo null; fi)
+  active: $(if [[ $MODE == active && -n $ACTIVE_LAUNCH ]]; then yq "$(subst "$ACTIVE_LAUNCH")"; else echo null; fi)
+  post_gazebo: $(yq "$POST_GAZEBO_CMD")
+  nudge: $(if [[ $NUDGE_ENABLE == 1 ]]; then yq "al_nudge.py $NUDGE_ARGS"; else echo null; fi)
 EOF
 )
   if [[ $DRY_RUN -eq 1 ]]; then
@@ -294,6 +314,8 @@ if [[ $DRY_RUN -eq 0 ]]; then
     grep -qx "$svc" <<<"$RUNNING" \
       || die "compose service '$svc' is not running (docker compose up -d)"
   done
+  "${DC[@]}" exec -T "$NAV_SVC" test -s "$PRISTINE_DB" \
+    || die "pristine map DB $PRISTINE_DB not found in $NAV_SVC (see scripts/README.md)"
 fi
 
 # Refuse to clobber existing run dirs before anything is started.
@@ -319,6 +341,7 @@ for ((i = 1; i <= RUNS; i++)); do
   G_LOG=$C_GZ_LOG_DIR/$RUN
   RUNNER_RC=null
   RUN_ERROR=''
+  NUDGE_RC=null
   echo
   echo "=== run $i/$RUNS: $RUN seed=$SEED ==="
   START_WALL=$(date -Iseconds)
@@ -330,25 +353,46 @@ for ((i = 1; i <= RUNS; i++)); do
   run "${DC[@]}" cp "$SCENARIO" "$NAV_SVC:$C_RUN/scenario.yaml"
 
   # 2. stacks
+  echo "# restore pristine map DB: $PRISTINE_DB -> $DB_PATH"
+  run "${DC[@]}" exec -T "$NAV_SVC" cp -f "$PRISTINE_DB" "$DB_PATH"
   STACKS_UP=1
   start GAZEBO "$GAZEBO_SVC" "$G_LOG" "$(subst "$GAZEBO_LAUNCH")"
   pause "$GAZEBO_STARTUP_S"
+  if [[ -n $POST_GAZEBO_CMD ]]; then
+    echo "# post-gazebo: $POST_GAZEBO_CMD"
+    run "${DC[@]}" exec -T "$GAZEBO_SVC" bash -c "$POST_GAZEBO_CMD" || true
+  fi
   start LOC "$NAV_SVC" "$C_LOG" "$(subst "$LOC_LAUNCH")"
   pause "$LOC_STARTUP_S"
   start NOISE "$NAV_SVC" "$C_LOG" "$(subst "$NOISE_LAUNCH")"
   pause "$NOISE_STARTUP_S"
+  if [[ $NUDGE_ENABLE == 1 ]]; then
+    echo "# start-up nudge (al_nudge.py $NUDGE_ARGS)"
+    run "${DC[@]}" cp "$REPO_ROOT/scripts/al_nudge.py" "$NAV_SVC:$C_RUN/al_nudge.py"
+    if run "${DC[@]}" exec -T "$NAV_SVC" bash -c \
+         "$ROS_SETUP && python3 $C_RUN/al_nudge.py $NUDGE_ARGS 2>&1 | tee $C_LOG/nudge.log; exit \${PIPESTATUS[0]}"; then
+      NUDGE_RC=0
+    else
+      NUDGE_RC=$?
+    fi
+    [[ $DRY_RUN -eq 1 ]] && NUDGE_RC=null
+  fi
   start NAV "$NAV_SVC" "$C_LOG" "$(subst "$NAV_LAUNCH")"
   pause "$NAV_STARTUP_S"
   start RECORDER "$NAV_SVC" "$C_LOG" "$(subst "$RECORDER_LAUNCH")"
   pause "$RECORDER_STARTUP_S"
-  if [[ $MODE == active ]]; then
+  if [[ $MODE == active && -n $ACTIVE_LAUNCH ]]; then
     start ACTIVE "$NAV_SVC" "$C_LOG" "$(subst "$ACTIVE_LAUNCH")"
     pause "$ACTIVE_STARTUP_S"
   fi
 
   # 3.+4. readiness + goals (scenario_runner), then stop the recorder
   DEAD_STACKS=''
-  if check_alive; then
+  if [[ $NUDGE_RC != 0 && $NUDGE_RC != null ]]; then
+    RUNNER_RC=6
+    RUN_ERROR="start-up nudge failed (exit $NUDGE_RC): no map->odom"
+    echo "ERROR: $RUN_ERROR" >&2
+  elif check_alive; then
     echo "# scenario_runner (checks $ACTION + TF map->base_link)"
     RUNNER_CMD="ros2 run al_eval scenario_runner --scenario $C_RUN/scenario.yaml --out $C_RUN/result.yaml --run-name $RUN --mode $MODE --seed $SEED --action $ACTION${RUNNER_ARGS:+ $RUNNER_ARGS} --ros-args -p use_sim_time:=true"
     if run "${DC[@]}" exec -T "$NAV_SVC" bash -c \
