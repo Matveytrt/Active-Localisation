@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # Run one scenario N times in one mode, each run from a clean simulator start.
 #
-#   scripts/run_experiment.sh --mode baseline|active --runs N --scenario <yaml>
+#   scripts/run_experiment.sh --mode baseline|active|control --runs N --scenario <yaml>
 #                             [--seed0 S] [--out DIR] [--overwrite] [--dry-run]
 #
-#   --mode M        baseline | active (active also starts ACTIVE_LAUNCH and
-#                   uses NAV_LAUNCH_ACTIVE instead of NAV_LAUNCH_BASELINE)
+#   --mode M        baseline | active | control. active uses NAV_LAUNCH_ACTIVE
+#                   (+ ACTIVE_LAUNCH if set); control (D-2) uses the active
+#                   params with both scorers "null" and loc_layer disabled
 #   --runs N        number of runs (>= 1)
 #   --scenario F    scenario YAML (see navigation/src/al_eval/config/scenarios/)
 #   --seed0 S       seed of run 1; run i uses S + i - 1 (default 42). Both
@@ -72,9 +73,14 @@ exec </dev/null
 # Optional extra stack in active mode (Python fallback al_navigator, T-008):
 # empty = not started (default with the C++ plugins).
 : "${ACTIVE_LAUNCH:=}"
+# Control mode (D-2, spec v2): the active params file with GridBased.scorer and
+# loc_layer.scorer = "null" and loc_layer.enabled = false. Generated per run into
+# the run dir (kept with the results); @CONTROL_PARAMS@ is that file.
+: "${NAV_LAUNCH_CONTROL:=ros2 launch nav2_planner_custom navigation_launch.py params_file:=@CONTROL_PARAMS@}"
 # NavigateToPose action the runner sends goals to, per mode.
 : "${ACTION_BASELINE:=/navigate_to_pose}"
 : "${ACTION_ACTIVE:=/navigate_to_pose}"
+: "${ACTION_CONTROL:=/navigate_to_pose}"
 
 # RTAB-Map DB (ENG, FACTS 18.10): localization mode starts from the last
 # localization saved in the DB and writes to the DB, so every run starts from a
@@ -135,8 +141,8 @@ while [[ $# -gt 0 ]]; do
 done
 
 die() { echo "ERROR: $1" >&2; exit "${2:-1}"; }   # die MESSAGE [CODE]
-[[ $MODE == baseline || $MODE == active ]] \
-  || die "--mode must be baseline or active (got '$MODE')" 2
+[[ $MODE == baseline || $MODE == active || $MODE == control ]] \
+  || die "--mode must be baseline, active or control (got '$MODE')" 2
 [[ $RUNS =~ ^[0-9]+$ && $RUNS -ge 1 ]] || die "--runs must be an integer >= 1" 2
 [[ $SEED0 =~ ^-?[0-9]+$ ]] || die "--seed0 must be an integer" 2
 [[ -n $SCENARIO ]] || die "--scenario is required" 2
@@ -161,10 +167,23 @@ if [[ $MODE == active && $NAV_LAUNCH_ACTIVE == "$NAV_LAUNCH_BASELINE" ]]; then
   echo "# WARNING: NAV_LAUNCH_ACTIVE equals NAV_LAUNCH_BASELINE (active Nav2 params not applied)" >&2
 fi
 
-if [[ $MODE == active ]]; then NAV_LAUNCH=$NAV_LAUNCH_ACTIVE; ACTION=$ACTION_ACTIVE
-else NAV_LAUNCH=$NAV_LAUNCH_BASELINE; ACTION=$ACTION_BASELINE; fi
+case $MODE in
+  active)  NAV_LAUNCH=$NAV_LAUNCH_ACTIVE;  ACTION=$ACTION_ACTIVE ;;
+  control) NAV_LAUNCH=$NAV_LAUNCH_CONTROL; ACTION=$ACTION_CONTROL ;;
+  *)       NAV_LAUNCH=$NAV_LAUNCH_BASELINE; ACTION=$ACTION_BASELINE ;;
+esac
 
 DC=(docker compose -f "$COMPOSE_FILE")
+
+# Active params -> control params (fails loudly if the expected keys are missing).
+CONTROL_PY='import sys, yaml
+d = yaml.safe_load(open(sys.argv[1]))
+g = d["planner_server"]["ros__parameters"]["GridBased"]
+l = d["global_costmap"]["global_costmap"]["ros__parameters"]["loc_layer"]
+assert "scorer" in g and "scorer" in l, "scorer keys not found"
+g["scorer"] = "null"; l["scorer"] = "null"; l["enabled"] = False
+yaml.safe_dump(d, open(sys.argv[2], "w"), sort_keys=False)
+print("control params written:", sys.argv[2])'
 
 # ===================================================================== helpers
 # Readable shell quoting for printed commands.
@@ -193,6 +212,7 @@ subst() {
   s=${s//@RUN_NAME@/$RUN}
   s=${s//@RUNS_DIR@/$C_RUNS_DIR}
   s=${s//@MODE@/$MODE}
+  s=${s//@CONTROL_PARAMS@/$C_RUN/nav2_params_control.yaml}
   printf '%s' "$s"
 }
 
@@ -387,6 +407,10 @@ for ((i = 1; i <= RUNS; i++)); do
       NUDGE_RC=$?
     fi
     [[ $DRY_RUN -eq 1 ]] && NUDGE_RC=null
+  fi
+  if [[ $MODE == control ]]; then
+    echo "# control params: $NAV_PARAMS_ACTIVE -> $C_RUN/nav2_params_control.yaml (scorers null, loc_layer off)"
+    run "${DC[@]}" exec -T "$NAV_SVC" python3 -c "$CONTROL_PY" "$NAV_PARAMS_ACTIVE" "$C_RUN/nav2_params_control.yaml"
   fi
   start NAV "$NAV_SVC" "$C_LOG" "$(subst "$NAV_LAUNCH")"
   pause "$NAV_STARTUP_S"

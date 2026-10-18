@@ -36,7 +36,8 @@ import re
 import sys
 from typing import Any, Dict, List, Optional, Sequence
 
-MODES = ('baseline', 'active')
+# control (D-2): active params with scorer "null" + loc_layer off (ENG, T-009d)
+MODES = ('baseline', 'active', 'control')
 DEFAULT_ALLOWED_FRAMES = ('map',)
 
 SCENARIO_KEYS = {'name', 'frame_id', 'goal_timeout_s', 'settle_s', 'goals'}
