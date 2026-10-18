@@ -60,6 +60,47 @@ def test_positions_at_and_run_color():
     assert plots.run_color('odd', 1) == plots.RUN_COLORS[0]
 
 
+def test_heading_samples():
+    from al_eval.tum import yaw_to_quat
+    # straight line along +x, 0.1 m steps, heading +y (crab-like)
+    rows = [(float(i), 0.1 * i, 0.0, 0.0) + yaw_to_quat(1.0)
+            for i in range(31)]
+    h = plots.heading_samples(rows, 0.5)
+    assert h[:, 0].tolist() == pytest.approx([0.0, 0.5, 1.0, 1.5, 2.0, 2.5,
+                                              3.0])
+    assert h[:, 2] == pytest.approx(np.full(7, 1.0))
+    assert plots.heading_samples(rows, 0.0).shape == (0, 3)
+    assert plots.heading_samples([], 0.5).shape == (0, 3)
+
+
+def test_load_runs_crop_and_rug_times(tmp_path):
+    root = str(tmp_path / 'exp')
+    ms.write_experiment(root, runs=1, seed=3, modes=('active',))
+    d = os.path.join(root, 'active_01')
+    mock_run_evo(d)
+    run = plots.load_runs([d], 'none')['active'][0]
+    assert run['window'] == (100.0, 166.0)
+    assert run['gt'][0][0] == 100.0 and run['est'][0][0] > 100.0
+    t, e = run['ape']
+    assert run['ape_t0'] == pytest.approx(run['est'][0][0])
+    assert len(t) == len(run['est'])
+    full = plots.load_runs([d], 'none', crop=False)['active'][0]
+    assert full['window'] is None and full['ape'] is None  # no evo_none_full
+    assert full['gt'][0][0] == pytest.approx(96.0)
+    # rug: one tick row per run below zero
+    plt = plots._plt()
+    fig, ax = plt.subplots()
+    ax.plot(t, e)
+    plots._detection_rug(ax, [run])
+    assert ax.get_ylim()[0] < 0
+    ticks = ax.lines[-1]
+    assert ticks.get_marker() == '|'
+    assert len(ticks.get_xdata()) == sum(1 for r in run['landmarks']
+                                         if r[1] >= 1)
+    assert min(ticks.get_xdata()) >= 0.0
+    plt.close(fig)
+
+
 def test_load_background(tmp_path):
     arr = np.arange(12.0).reshape(3, 4)
     np.save(tmp_path / 'bg.npy', arr)
@@ -99,6 +140,9 @@ def test_end_to_end_mocked_evo(tmp_path):
                        str(tmp_path / 'bg.npy'), '--extent', '-4.9', '3.3',
                        '-2.1', '5.4']) == 0
     _assert_plots(out)
+    out2 = os.path.join(root, 'plots_noarrows')
+    assert plots.main([root, '--out', out2, '--arrow-spacing', '0']) == 0
+    _assert_plots(out2)
 
 
 def test_plots_tolerate_missing_inputs(tmp_path):
@@ -130,12 +174,49 @@ def test_end_to_end_real_evo(tmp_path):
                            capture_output=True, text=True)
         assert r.returncode == 0, r.stdout + r.stderr
         assert 'SUMMARY align=none' in r.stdout
+        assert 'SUMMARY_ROT align=none' in r.stdout
+        assert os.path.isfile(os.path.join(d, 'evo_none', 'eval_window.yaml'))
+        assert os.path.isfile(os.path.join(d, 'gt_eval.tum'))
     assert sm.main([root]) == 0
-    rows = sm.collect(sm.find_runs(root), 'none', 1.0, 'first')
+    assert os.path.isfile(os.path.join(root, 'summary',
+                                       'summary_paired.csv'))
+    rows = sm.collect(sm.find_runs(root), 'none', 1.0)
     modes = sm.summarize_modes(rows)
     assert modes['active']['ape_rmse']['mean'] < (
         modes['baseline']['ape_rmse']['mean'])
     assert all(r['align'] == 'not aligned' for r in rows)
+    assert all(r['notes'] == '' for r in rows if r['run'] != 'control_03')
     assert all(0.0 < r['rpe_rmse'] < 0.1 for r in rows)
+    assert all(0.0 < r['ape_rot_rmse'] < r['ape_rot_max'] < 5.0 for r in rows)
+    assert all(0.0 < r['rpe_rot_rmse'] <= r['rpe_rot_max'] for r in rows)
+    # the evo window equals the summarize window: APE max excludes the
+    # 0.3 m init transient of the pre-roll
+    assert all(r['ape_max'] < 0.15 for r in rows)
+    # whole recording (--no-crop) on one run: the transient is back
+    d = os.path.join(root, 'control_03')
+    r = subprocess.run(['bash', os.path.join(EVAL, 'run_evo.sh'), d,
+                        '--plot_format', 'none', '--no-crop'],
+                       capture_output=True, text=True)
+    assert r.returncode == 0, r.stdout + r.stderr
+    full = sm.load_run(d, crop=False)
+    assert full['ape_max'] > 0.25
+    assert not os.path.exists(os.path.join(d, 'evo_none_full',
+                                           'eval_window.yaml'))
     assert plots.main([root, '--score-map']) == 0
     _assert_plots(os.path.join(root, 'plots'))
+
+
+@pytest.mark.skipif(shutil.which('evo_ape') is None,
+                    reason='evo not installed (pip install evo)')
+def test_run_evo_legacy_case_unchanged(tmp_path):
+    """No result.yaml -> full range (WARNING); README numbers unchanged."""
+    subprocess.run([sys.executable, os.path.join(EVAL, 'make_synthetic.py'),
+                    str(tmp_path), '--case', 'shift'], check=True,
+                   capture_output=True)
+    r = subprocess.run(['bash', os.path.join(EVAL, 'run_evo.sh'),
+                        str(tmp_path / 'shift'), '--plot_format', 'none'],
+                       capture_output=True, text=True)
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert 'full GT range used' in r.stderr
+    assert 'APE rmse=0.1000' in r.stdout and 'RPE rmse=0.0000' in r.stdout
+    assert 'SUMMARY_ROT align=none  APE rmse=0.000' in r.stdout

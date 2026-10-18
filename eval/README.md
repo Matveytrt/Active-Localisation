@@ -27,6 +27,11 @@ eval/run_evo.sh ~/al_runs/baseline_01                 # без выравнив�
 eval/run_evo.sh ~/al_runs/baseline_01 --align se3     # Umeyama SE(3)
 ```
 
+> **T-011c:** by default `run_evo.sh` first crops all series to the
+> evaluation window (goal 1 start .. last goal end, from `result.yaml`) and
+> also runs evo with `-r angle_deg` (`ape_rot.zip`, `rpe_rot.zip`); the
+> commands below are run on `gt_eval.tum` / `est_eval.tum`. See §7.
+
 Результаты: `<run>/evo_<align>/` — `ape.zip`, `rpe.zip`, графики
 `ape_raw.png ape_map.png rpe_raw.png rpe_map.png` (или `--plot_format pdf` →
 `ape.pdf`, `rpe.pdf`), логи `ape.log rpe.log`, `commands.txt` (точные команды).
@@ -149,11 +154,12 @@ Definitions:
 * duration = sum of `duration_sim_s` of the goals in `result.yaml`
   (fallback: time span of `gt.tum`, noted in `duration_source`);
   path length = integrated xy distance of `gt.tum`.
-* detection coverage is measured over the GT time span `[t_gt0, t_gt1]`.
+* detection coverage is measured over the evaluation window (§7; the GT
+  time span if there is none).
 * map→odom step = largest change between consecutive samples; correction
-  = largest |map→odom − first sample| (`--map-odom-ref first`, removes the
-  constant spawn offset) or |map→odom| (`--map-odom-ref zero`). Both are
-  properties of the transform, not of the robot pose jump.
+  = largest |map→odom| (`--map-odom-ref zero`, default since T-011c) or
+  |map→odom − first sample in the window| (`--map-odom-ref first`). Both
+  are properties of the transform, not of the robot pose jump.
 * Missing `evo_<align>/`, `result.yaml`, `landmarks.csv` or
   `map_odom.tum` give empty cells plus a warning. Different alignments
   across runs are an error (as in `aggregate.py`; `--allow_mixed_alignment`).
@@ -180,6 +186,86 @@ The synthetic model (see the `make_synthetic.py` docstring) is a toy:
 active sees landmarks on more of the lap, so its APE is lower and its
 detections per metre higher; control behaves like baseline.
 
-Tests (no ROS; evo is mocked, plus one end-to-end test with the real evo
-that is skipped if `evo_ape` is missing):
+Tests (no ROS; evo is mocked, plus end-to-end tests with the real evo
+that are skipped if `evo_ape` is missing):
 `python3 -m pytest -q eval navigation/src/al_eval/test`.
+
+## 7. Evaluation window, rotation, paired view, sanity flag — T-011c
+
+Implements the requests of the RND analysis plan (`04_analysis_plan.md` §6).
+Defaults changed in this version: **cropping on**, **map→odom reference
+`zero`** (was `first`).
+
+**Evaluation window** (`eval/crop_run.py RUN_DIR`). The recording contains
+the start-up (localization init, relocalization jump of up to ~1 m, the
+0.6 m nudge) and the time after the last goal. Everything is evaluated on
+`[t0, t1]` = [`start_sim_s` of the first goal, `end_sim_s` of the last
+goal], new per-goal fields of `result.yaml` written by `scenario_runner`
+(sim time of goal sending / goal end, the same clock as the TUM stamps when
+the runner runs with `use_sim_time:=true` — *[unverified on the testbed]*).
+`crop_run.py` writes `gt_eval.tum` (GT padded by `--gt-pad` 0.1 s on both
+sides so that evo can interpolate the est poses at the edges),
+`est_eval.tum`, `map_odom_eval.tum`, `landmarks_eval.csv` and
+`eval_window.yaml` (t0, t1, source, row counts). Without the stamps (old
+`result.yaml`, no `result.yaml`, end ≤ start, or a window that does not
+overlap the GT span — wall vs sim clock) it falls back to the full GT range
+and prints a `WARNING`; `--window T0 T1` sets it by hand.
+
+* `run_evo.sh` crops by default and evaluates the `*_eval` files into
+  `evo_<align>/` (+ a copy of `eval_window.yaml`); `--no-crop` evaluates the
+  whole recording into `evo_<align>_full/` (never mixed with the cropped
+  results). On the legacy `shift/noise/drift` cases (no `result.yaml`) the
+  numbers are unchanged (APE 0.1000 / RPE 0.0000 for `shift`).
+* `summarize.py` and `plots.py` apply the same window in memory (same
+  functions) to GT, landmarks and map→odom, and read `evo_<align>/`
+  (`--no-crop`: whole recording, `evo_<align>_full/`). `summarize.py`
+  notes a run whose `evo_<align>/eval_window.yaml` is missing (results of
+  the old `run_evo.sh`: rerun it) or differs from its own window.
+
+**Rotation.** `run_evo.sh` also runs `evo_ape/evo_rpe -r angle_deg` with the
+same association, alignment and RPE delta (`ape_rot.zip`, `rpe_rot.zip`,
+logs, a `SUMMARY_ROT` line). Columns `ape_rot_rmse`, `ape_rot_max`,
+`rpe_rot_rmse`, `rpe_rot_max` [deg].
+
+**New per-run columns** in `summary.csv` / `summary.md` (all on the window):
+
+| column | definition |
+|---|---|
+| `rot_total_rad` | Σ\|wrap(Δψ)\| of the GT yaw [rad] (D-3 injects yaw noise per radian turned) |
+| `mean_speed_mps` | GT path length / duration |
+| `det_max_gap_s` | longest interval of the window without a detection (edges included) [s] |
+| `mo_init_m`, `mo_init_yaw_deg` | \|map→odom\| of the *first sample of the whole recording* |
+| `sanity_flag` | `bad_db_init` if that sample is > `--init-tol-m` 0.05 m or > `--init-tol-deg` 2° from the identity, else `ok`; empty without `map_odom.tum` |
+| `seed`, `window_source`, `window_t0/t1`, `window_s` | pairing key; `result.yaml` / `full range` / `off (whole recording)` |
+
+Detections per m, coverage, map→odom max step / correction and path length
+are now computed on the window as well. Flagged runs **stay in the
+statistics** (not silently dropped); they are listed at the top of
+`summary.md` and in a comment of `summary_table.tex`.
+
+**`summary_paired.csv`**: one row per seed (`seed` from `run.yaml`, else
+`result.yaml`, else the run index `runNN`), the run of each mode, flagged
+runs, and for the main metrics (`ape_rmse ape_max rpe_rmse ape_rot_rmse
+det_per_m det_coverage_pct det_max_gap_s mo_max_corr_m duration_s
+path_length_m rot_total_rad`) the baseline value and `d_<mode>_<metric>` =
+mode − baseline. `summary.md` adds a table with the mean paired difference,
+the sign consistency `k/n` and the baseline spread (max − min) to compare
+control − baseline against.
+
+**`summary_table.tex`** (report Table 1, T-012b): rows = APE RMSE [m], APE
+max [m], detections per m, max map→odom correction [m], time [s], path
+length [m], goals reached (sum k/N); columns = modes; mean ± sample std. It
+sets `\tabcolsep` to 3 pt and fits one column of the report (checked with
+`report/build.sh`: no overfull box, 2 pages). The full metric set stays in
+`summary.md` / `summary.csv`.
+
+**Plots.** `trajectories`: est heading arrows every `--arrow-spacing` m of
+est path (default 0.5, 0 = off). `ape_vs_time`: below APE = 0 one rug row
+per run with a tick at each detection (landmarks.csv, n ≥ 1), on the APE
+time axis (seconds from the first evaluated pose).
+
+**Synthetic data.** `make_synthetic.py --case experiment` now writes the
+per-goal stamps, a 4 s pre-roll (est has a 0.3 m init transient that the
+window must remove: APE max 0.31 m whole recording vs 0.06 m cropped on
+`control_03`) and a 2 s post-roll; `control_03` has a wrong DB init
+(map→odom = 1 m / 157° for 1.5 s) and is flagged.

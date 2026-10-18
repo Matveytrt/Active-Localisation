@@ -1,15 +1,25 @@
 #!/usr/bin/env python3
 """Experiment plots per mode (PNG + PDF).
 
-  plots.py RUNS_ROOT [--out DIR] [--align none]
+  plots.py RUNS_ROOT [--out DIR] [--align none] [--no-crop]
+           [--arrow-spacing 0.5]
            [--score-map | --background FILE --extent XMIN XMAX YMIN YMAX]
+
+All series are cropped to the evaluation window of eval/crop_run.py
+([start of goal 1, end of the last goal] from result.yaml; full range if
+absent), APE from evo_<align>/ (run_evo.sh crops the same way);
+--no-crop: whole recording and evo_<align>_full/.
 
 Writes into --out (default RUNS_ROOT/plots):
 
 * trajectories.{png,pdf}  one panel per mode: GT thin dashed, est thick,
-                          one colour per run index, on an optional background
+                          one colour per run index, est heading arrows every
+                          --arrow-spacing m of est path (0 = off), on an
+                          optional background
 * ape_vs_time.{png,pdf}   one panel per mode: APE(t) of every run (thin) and
-                          the mean over runs (thick), from evo_<align>/ape.zip
+                          the mean over runs (thick), from evo_<align>/ape.zip;
+                          below zero one rug row per run with a tick at each
+                          landmark detection (landmarks.csv, n >= 1)
 * detections_path.{png,pdf} one panel per mode: GT path (grey) and the GT
                           position at each landmarks.csv row, coloured by
                           n_detections
@@ -37,9 +47,10 @@ import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+import crop_run as cw  # noqa: E402
 import summarize as sm  # noqa: E402
 from al_eval.recorder_helpers import read_landmarks_csv  # noqa: E402
-from al_eval.tum import read_tum  # noqa: E402
+from al_eval.tum import quat_to_yaw, read_tum  # noqa: E402
 
 AL_TOOLS = os.path.normpath(os.path.join(
     HERE, '..', 'navigation', 'src', 'active_localization', 'tools'))
@@ -67,17 +78,44 @@ def run_color(name: str, fallback: int) -> str:
     return RUN_COLORS[(i - 1) % len(RUN_COLORS)]
 
 
-def read_ape_series(zip_path: str) -> Tuple[np.ndarray, np.ndarray]:
-    """(seconds_from_start, error) arrays from an evo result zip."""
+def read_ape_series(zip_path: str, with_t0: bool = False):
+    """(seconds_from_start, error) arrays from an evo result zip.
+
+    With ``with_t0`` also the absolute stamp of the first pose (NaN if the
+    zip has no timestamps.npy), to put other events on the same time axis.
+    """
     with zipfile.ZipFile(zip_path) as z:
         names = set(z.namelist())
         err = np.load(io.BytesIO(z.read('error_array.npy')))
+        ts = (np.load(io.BytesIO(z.read('timestamps.npy')))
+              if 'timestamps.npy' in names else None)
         if 'seconds_from_start.npy' in names:
             t = np.load(io.BytesIO(z.read('seconds_from_start.npy')))
         else:
-            ts = np.load(io.BytesIO(z.read('timestamps.npy')))
             t = ts - ts[0]
-    return np.asarray(t, float), np.asarray(err, float)
+    t, err = np.asarray(t, float), np.asarray(err, float)
+    if not with_t0:
+        return t, err
+    t0 = float(ts[0]) if ts is not None and len(ts) else float('nan')
+    return t, err, t0
+
+
+def heading_samples(rows: Sequence[Sequence[float]],
+                    spacing: float = 0.5) -> np.ndarray:
+    """(x, y, yaw) of TUM rows every ``spacing`` m of xy path (first pose
+    included); empty (0, 3) for spacing <= 0 or no rows."""
+    if spacing <= 0 or not len(rows):
+        return np.zeros((0, 3))
+    r = np.asarray(rows, float)
+    xy = r[:, 1:3]
+    s = np.concatenate([[0.0], np.cumsum(np.hypot(*np.diff(xy, axis=0).T))])
+    idx, nxt = [], 0.0
+    for i, si in enumerate(s):
+        if si >= nxt:
+            idx.append(i)
+            nxt = si + spacing
+    yaw = np.array([quat_to_yaw(*r[i, 4:8]) for i in idx])
+    return np.column_stack([xy[idx, 0], xy[idx, 1], yaw])
 
 
 def mean_on_grid(series: Sequence[Tuple[np.ndarray, np.ndarray]],
@@ -115,24 +153,33 @@ def positions_at(gt: Sequence[Sequence[float]],
                             np.interp(s, g[:, 0], g[:, 2])])
 
 
-def load_runs(run_dirs: Sequence[str], align: str) -> 'Dict[str, List]':
-    """mode -> [run dict(name, gt, est, ape, landmarks)], modes ordered."""
+def load_runs(run_dirs: Sequence[str], align: str,
+              crop: bool = True) -> 'Dict[str, List]':
+    """mode -> [run dict(name, gt, est, ape, ape_t0, landmarks)], modes
+    ordered; series cropped to the evaluation window unless ``crop`` is
+    False."""
     runs = []
     for d in run_dirs:
         name = os.path.basename(os.path.normpath(d))
         mode, _ = sm.run_mode(d)
         r = {'name': name, 'mode': mode, 'gt': [], 'est': [], 'ape': None,
-             'landmarks': []}
+             'ape_t0': float('nan'), 'landmarks': [], 'window': None}
         for key, fn in (('gt', 'gt.tum'), ('est', 'est.tum')):
             p = os.path.join(d, fn)
             if os.path.isfile(p):
                 r[key] = read_tum(p)
-        z = os.path.join(d, 'evo_' + align, 'ape.zip')
-        if os.path.isfile(z):
-            r['ape'] = read_ape_series(z)
         p = os.path.join(d, 'landmarks.csv')
         if os.path.isfile(p):
             r['landmarks'] = read_landmarks_csv(p)
+        if crop and r['gt']:
+            t0, t1, _, _ = cw.resolve_window(d, r['gt'])
+            r['window'] = (t0, t1)
+            for key in ('gt', 'est', 'landmarks'):
+                r[key] = cw.crop_rows(r[key], t0, t1)
+        z = os.path.join(sm.evo_dir(d, align, crop), 'ape.zip')
+        if os.path.isfile(z):
+            t, e, r['ape_t0'] = read_ape_series(z, with_t0=True)
+            r['ape'] = (t, e)
         runs.append(r)
     out: Dict[str, List] = {}
     for mode in sorted({r['mode'] for r in runs}, key=sm.mode_sort_key):
@@ -233,7 +280,8 @@ def _xy_limits(ax, bg, xy_all: List[np.ndarray]) -> None:
 
 
 def plot_trajectories(by_mode: Dict, out_base: str,
-                      bg: Optional[Background] = None) -> List[str]:
+                      bg: Optional[Background] = None,
+                      arrow_spacing: float = 0.5) -> List[str]:
     plt, fig, axes = _panels(len(by_mode))
     im = None
     for ax, (mode, runs) in zip(axes, by_mode.items()):
@@ -246,6 +294,15 @@ def plot_trajectories(by_mode: Dict, out_base: str,
                 ax.plot(e[:, 0], e[:, 1], color=col, lw=2.0, zorder=3,
                         label='%s est' % r['name'])
                 xy_all.append(e)
+                h = heading_samples(r['est'], arrow_spacing)
+                if len(h):
+                    ln = 0.6 * arrow_spacing
+                    ax.quiver(h[:, 0], h[:, 1], ln * np.cos(h[:, 2]),
+                              ln * np.sin(h[:, 2]), color=col,
+                              angles='xy', scale_units='xy', scale=1.0,
+                              width=0.006, headwidth=3.5, headlength=3.5,
+                              headaxislength=3.0, edgecolor=INK,
+                              linewidth=0.5, zorder=5)
             if r['gt']:
                 g = np.asarray(r['gt'])[:, 1:3]
                 ax.plot(g[:, 0], g[:, 1], color=INK, lw=0.7, ls='--',
@@ -261,8 +318,10 @@ def plot_trajectories(by_mode: Dict, out_base: str,
     if im is not None and bg is not None and bg[0].ndim == 2:
         fig.colorbar(im, ax=axes, shrink=0.7, pad=0.01,
                      label='background (s* if --score-map)')
-    fig.suptitle('Trajectories: GT (thin dashed) vs estimate (thick)',
-                 fontsize=11, color=INK)
+    title = 'Trajectories: GT (thin dashed) vs estimate (thick)'
+    if arrow_spacing > 0:
+        title += ', est heading every %g m' % arrow_spacing
+    fig.suptitle(title, fontsize=11, color=INK)
     return _save(fig, out_base)
 
 
@@ -285,7 +344,7 @@ def plot_ape_vs_time(by_mode: Dict, out_base: str,
             ax.text(0.5, 0.5, 'no evo_%s/ape.zip' % align, ha='center',
                     va='center', transform=ax.transAxes, color=INK_2)
         _style(ax)
-        ax.set_ylim(bottom=0)
+        _detection_rug(ax, runs)
         ax.set_title('%s (%d runs)' % (mode, len(series)), fontsize=10,
                      color=INK)
         ax.set_xlabel('time from start [s]', fontsize=9, color=INK_2)
@@ -297,6 +356,30 @@ def plot_ape_vs_time(by_mode: Dict, out_base: str,
                  color=INK)
     fig.tight_layout()
     return _save(fig, out_base)
+
+
+def _detection_rug(ax, runs: Sequence[Dict]) -> None:
+    """One row of ticks per run below APE = 0, at the detection times.
+
+    Times are relative to the first APE pose of the run (``ape_t0``), i.e.
+    on the same axis as the APE curve; runs without APE are skipped.
+    """
+    top = max(ax.get_ylim()[1], 1e-6)
+    rows = [r for r in runs if r['ape'] is not None
+            and np.isfinite(r['ape_t0'])]
+    h = 0.06 * top
+    ax.set_ylim(-(len(rows) * h + 0.02 * top), top)
+    ax.axhline(0.0, color=INK_2, lw=0.6)
+    for k, r in enumerate(rows, 1):
+        st = np.array([row[0] for row in r['landmarks'] if row[1] >= 1])
+        if st.size:
+            ax.plot(st - r['ape_t0'], np.full(st.size, -(k - 0.5) * h),
+                    ls='none', marker='|', ms=4, mew=0.8,
+                    color=run_color(r['name'], k))
+    if rows:
+        ax.text(1.0, -0.5 * len(rows) * h, ' detections', fontsize=6,
+                color=INK_2, va='center', ha='left',
+                transform=ax.get_yaxis_transform())
 
 
 def plot_detections(by_mode: Dict, out_base: str,
@@ -345,11 +428,13 @@ def plot_detections(by_mode: Dict, out_base: str,
 
 
 def make_all(by_mode: Dict, out_dir: str, align: str = 'none',
-             bg: Optional[Background] = None) -> List[str]:
+             bg: Optional[Background] = None,
+             arrow_spacing: float = 0.5) -> List[str]:
     os.makedirs(out_dir, exist_ok=True)
     paths = []
     paths += plot_trajectories(by_mode, os.path.join(out_dir,
-                                                     'trajectories'), bg)
+                                                     'trajectories'), bg,
+                               arrow_spacing)
     paths += plot_ape_vs_time(by_mode, os.path.join(out_dir, 'ape_vs_time'),
                               align)
     paths += plot_detections(by_mode, os.path.join(out_dir,
@@ -364,6 +449,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     ap.add_argument('--runs', nargs='+', help='explicit run dirs (no root)')
     ap.add_argument('--out', help='output dir (default ROOT/plots)')
     ap.add_argument('--align', default='none')
+    ap.add_argument('--no-crop', action='store_true',
+                    help='whole recording; APE from evo_<align>_full/')
+    ap.add_argument('--arrow-spacing', type=float, default=0.5,
+                    help='est heading arrow every N m of path (0 = off)')
     ap.add_argument('--score-map', action='store_true',
                     help='S2* s* map as background')
     ap.add_argument('--background', help='PNG or .npy background')
@@ -386,9 +475,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         bg = score_map_background()
     elif a.background:
         bg = load_background(a.background, a.extent)
-    by_mode = load_runs(run_dirs, a.align)
+    by_mode = load_runs(run_dirs, a.align, crop=not a.no_crop)
     out = a.out or os.path.join(a.root or '.', 'plots')
-    for p in make_all(by_mode, out, a.align, bg):
+    for p in make_all(by_mode, out, a.align, bg, a.arrow_spacing):
         print('wrote', p)
     return 0
 
