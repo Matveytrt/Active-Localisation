@@ -50,9 +50,9 @@ DEFAULT_OCCLUSION_ROWS = ((-2.9, 2.15, 0.9, 1.5),
 DEFAULTS = {
     'k_fov': 40.0,        # rad^-1 (~5 deg edge), RND §3 C2
     'a_min': 500.0,       # px^2, ENG-10 fit (485-508)
-    'k_a': 10.0,          # LEAD choice
-    'r_min': 0.70,        # m, ENG-10
-    'k_r': 20.0,          # m^-1, ENG-10
+    'k_a': 20.0,          # RND-7
+    'r_min': 0.66,        # m, ENG-10 + RND-7
+    'k_r': 40.0,          # m^-1, RND-7
     'focal_px': 528.4,    # px
     'marker_size': 0.08,  # m
     'm_sat': 1.0,         # M, ADR-001
