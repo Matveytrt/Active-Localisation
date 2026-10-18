@@ -47,7 +47,8 @@ def test_check_value_area_limit():
 
 def test_check_value_near_limit():
     c = scorer().components(*facing(0.6))
-    assert abs(c['w'][0] - 0.12) < 0.03
+    # RND-7: r_min 0.66, k_r 40 -> sig(40 * (0.60 - 0.66)) = 0.083
+    assert abs(c['w'][0] - 0.083) < 0.01
 
 
 def test_turned_away():
@@ -61,7 +62,7 @@ def test_behind_the_marker_is_invisible():
     s = scorer(occlusion_rows=[])
     c = s.components(ID1[0], ID1[1] + 1.07, -math.pi / 2)
     assert c['area'][0] == 0.0
-    assert abs(c['w'][0] - 1.0 / (1.0 + math.exp(10.0))) < 1e-6
+    assert abs(c['w'][0] - 1.0 / (1.0 + math.exp(s.k_a))) < 1e-6
 
 
 def test_incidence_60deg_at_1p6m_not_visible():
@@ -155,6 +156,6 @@ def test_normals_param():
 
 def test_camera_offset_is_used():
     s = scorer()
-    x, y, yaw = facing(0.70)                             # camera exactly at r_min
-    assert abs(scorer().components(x, y, yaw)['r'][0] - 0.70) < 1e-12
+    x, y, yaw = facing(0.66)                             # camera exactly at r_min
+    assert abs(scorer().components(x, y, yaw)['r'][0] - 0.66) < 1e-12
     assert abs(s.components(x, y, yaw)['g_near'][0] - 0.5) < 1e-12
