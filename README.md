@@ -106,6 +106,67 @@ docker compose build --progress=plain navigation 2>&1 | tee logs/build_navigatio
 
 Подробности и параметры — в README модулей: [`gazebo`](gazebo/README.md), [`navigation`](navigation/README.md).
 
+## Active-режим: навигация с учётом наблюдаемости маркеров
+
+Два нативных плагина Nav2 из пакета [`al_nav2_plugins`](navigation/src/al_nav2_plugins/README.md) (ADR-001) меняют только то, *как* робот едет, а не куда: поведенческое дерево, recovery и action `/navigate_to_pose` остаются базовыми.
+
+| Плагин | Где подключается | Что делает |
+|---|---|---|
+| `al_nav2_plugins/LocalizabilityLayer` | слой `loc_layer` в `global_costmap` (перед `inflation_layer`) | **рычаг маршрута**: добавляет к стоимости клеток `c_max·(1 − min(s*/s_ref, 1))^p`, где `s*` - лучшая по 36 курсам оценка наблюдаемости маркеров из клетки |
+| `al_nav2_plugins/LocalizationAwarePlanner` | `planner_server`, плагин `GridBased` (внутри Theta*) | **рычаг курса**: после Theta* подбирает курс вдоль пути (Витерби по 36 курсам) и пишет его в позы пути |
+
+Для контроллера MPPI в active-режиме включён `PathAlignCritic.use_path_orientations`, а `PathAngleCritic` и `PreferForwardCritic` выключены (иначе они спорят с курсами из пути). Все отличия active от baseline лежат в одном файле параметров, [`nav2_params_active.yaml`](navigation/src/nav2_planner_custom/config/nav2_params_active.yaml); baseline-конфиги не меняются.
+
+### Сборка
+
+Плагины собираются в рабочем пространстве контейнера `navigation` (`~/ros2_ws`, там смонтирован `navigation/src`):
+
+```bash
+docker compose exec navigation bash
+source /opt/ros/humble/setup.bash && cd ~/ros2_ws
+colcon build --packages-select al_nav2_plugins && source install/setup.bash
+```
+
+Тесты пакета (gtest на фикстурах Python-эталона `active_localization` плюс линтеры ament) в отдельном overlay-пространстве `~/dev_ws`, не трогая `~/ros2_ws`: `navigation/src/al_nav2_plugins/tools/build_and_test.sh` (запускать на хосте, нужен docker).
+
+### Запуск режимов
+
+Один и тот же сценарий и одни и те же seed в каждом режиме, каждый прогон стартует с чистого симулятора:
+
+```bash
+scripts/run_experiment.sh --mode baseline --runs 3 --scenario <сценарий.yaml> [--seed0 42]
+scripts/run_experiment.sh --mode active   --runs 3 --scenario <сценарий.yaml> [--seed0 42]
+```
+
+| Режим | Файл параметров Nav2 | Что работает |
+|---|---|---|
+| `baseline` | `nav2_params_v2.yaml` | Theta* + MPPI как раньше |
+| `active` | `nav2_params_active.yaml` (переменная `NAV_PARAMS_ACTIVE`) | `LocalizabilityLayer` + `LocalizationAwarePlanner`, `scorer: "marker_soft_count"` |
+| `control` | копия `nav2_params_active.yaml` | те же плагины и тот же MPPI, но без наблюдаемости: `scorer: "null"` в планировщике и в слое, `loc_layer.enabled: false` - так отделяется эффект метода от эффекта смены плагинов и критиков |
+
+Результат каждого прогона: `~/al_runs/<режим>_NN/` (`gt.tum`, `est.tum`, `result.yaml`, ...); дальше `eval/run_evo.sh` и `eval/aggregate.py`. Отдельного флага `--mode control` в `run_experiment.sh` пока нет (ENG добавляет): до тех пор control запускается как `--mode active` с `NAV_PARAMS_ACTIVE`, указывающим на копию файла с перечисленными выше изменениями. [не проверено: после слияния PR ENG свериться с фактическими флагами раннера]
+
+### Основные параметры
+
+Полная таблица - в [README пакета](navigation/src/al_nav2_plugins/README.md#parameters). Те, что чаще всего трогают:
+
+| Параметр | Значение (spec v2) | Смысл |
+|---|---|---|
+| `loc_layer.c_max` | `40` (**целое**; `40.0` rclcpp отклонит) | максимальная добавка к стоимости клетки, подбирается сухими прогонами |
+| `loc_layer.scorer`, `GridBased.scorer` | `marker_soft_count` / `"null"` | наблюдаемость маркеров / выключена (control) |
+| `k_a`, `r_min`, `k_r` | `20`, `0.66`, `40` | мягкая видимость маркера по размеру в пикселях и дальности |
+| `GridBased.k_yaw_rate` | `2.0` | предел скорости поворота на метр пути в DP курса |
+| `GridBased.step` | `0.20` | шаг передискретизации пути; он в ~4 раза реже родного шага Theta* |
+
+### Проверка вживую
+
+Когда Nav2 запущен (в контейнере или с хоста), `tools/check_live.sh` печатает PASS/FAIL: загружены ли классы плагинов, параметры слоя и планировщика (с предупреждением, если они не совпадают со spec v2), стоимость в нескольких клетках и один образец пути с курсом, отличным от касательной:
+
+```bash
+navigation/src/al_nav2_plugins/tools/check_live.sh --expect active  --scenario <сценарий.yaml>
+navigation/src/al_nav2_plugins/tools/check_live.sh --expect control --goal 1.0,1.0,0.0
+```
+
 ## Интерфейс между модулями
 
 Чтобы заменить модуль `gazebo` (другим симулятором или реальным роботом), замена должна предоставлять те же топики и TF:

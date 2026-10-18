@@ -91,3 +91,14 @@ and copy them to `test/fixtures/` when the parameters change.
 
 Experiment runs: `scripts/run_experiment.sh --mode baseline|active ...` (see `scripts/README.md`;
 the control mode is added by ENG, T-009d).
+
+## Live check
+
+`tools/check_live.sh` (with `check_live.py`) checks a running Nav2: plugin classes loaded
+(`ros2 param get` on `planner_server` / `global_costmap`), `loc_layer` and planner parameters
+against spec v2, layer cost statistics and the cost at "marker seen from 1.88 m" cells (or
+`--cell x,y,min,max`), and one `ComputePathToPose` sample (`--goal x,y[,yaw]` or
+`--scenario FILE`): last pose = goal, pose spacing = `step`, start yaw pinned, yaw differs from the
+path tangent (`--expect active`) or follows it (`--expect control`). Prints PASS / FAIL / WARN per
+check; exit code 1 on any FAIL. Run it in the `navigation` container or from the host
+(`NAV_CONTAINER` names the container). Thresholds tagged `[heuristic]` are judgement, not spec values.
