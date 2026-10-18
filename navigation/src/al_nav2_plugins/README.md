@@ -34,6 +34,7 @@ Both plugins read the scorer under their own plugin name (`loc_layer.*` for the 
 |---|---|---|
 | `scorer` | `marker_soft_count` | `null` = control run: layer cost 0, DP with score 0 (forward prior + pins only) |
 | `landmarks_file`, `marker_ids`, `marker_normal` | -, `[]` (all), `[0, -1]` | RTAB-Map landmark export; one outward face normal for all markers |
+| `marker_normal_axis` | `""` (off) | optional: derive each marker's normal from its `orientation` in the export (local axis `"+x"`, `"-y"`, ...; same as the Python `normal_axis`); `marker_normal` stays the fallback. On the current export `"+x"` gives normals within ~3° of -y; **unverified** that +x is the face normal of the real markers - off by default |
 | `hfov`, `k_fov` | 1.089, 40 | camera field of view |
 | `focal_px`, `marker_size` | 528.4, 0.08 | projected-area gate |
 | `a_min`, `k_a` | 500, 20 | |

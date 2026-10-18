@@ -21,6 +21,7 @@
 // loadLandmarks() against a copy of the RTAB-Map export (test/fixtures/landmarks_sample.yaml).
 #include <gtest/gtest.h>
 
+#include <cmath>
 #include <string>
 #include <vector>
 
@@ -60,4 +61,37 @@ TEST(LandmarksIo, MissingFileThrows) {
   EXPECT_THROW(
     al_nav2_plugins::loadLandmarks("/nonexistent/landmarks.yaml", {}, 0.0, -1.0),
     std::runtime_error);
+}
+
+TEST(LandmarksIo, DerivesPerMarkerNormalsFromOrientation) {
+  const auto m = al_nav2_plugins::loadLandmarks(kFile, {}, 0.0, -1.0, nullptr, "+x");
+  ASSERT_EQ(m.size(), 5u);
+  // The export is yaw-only: the local +x axis points along the face normal, about -y; the
+  // markers differ by a few degrees (id 5 leans towards +x).
+  for (const auto & k : m) {
+    EXPECT_NEAR(std::hypot(k.nx, k.ny), 1.0, 1e-9);
+    EXPECT_LT(std::fabs(k.nx), 0.06);
+    EXPECT_LT(k.ny, -0.99);
+  }
+  EXPECT_NEAR(m[0].nx, -0.028, 0.002);   // id 1
+  EXPECT_NEAR(m[4].nx, 0.044, 0.002);    // id 5
+  EXPECT_NE(m[0].nx, m[4].nx);
+  const auto flipped = al_nav2_plugins::loadLandmarks(kFile, {}, 0.0, -1.0, nullptr, "-x");
+  EXPECT_NEAR(flipped[0].nx, -m[0].nx, 1e-12);
+  EXPECT_NEAR(flipped[0].ny, -m[0].ny, 1e-12);
+}
+
+TEST(LandmarksIo, VerticalAxisFallsBackToTheUniformNormal) {
+  // The markers' z axis is vertical in the export, so the facing direction is undefined.
+  const auto m = al_nav2_plugins::loadLandmarks(kFile, {}, 0.0, -1.0, nullptr, "+z");
+  ASSERT_EQ(m.size(), 5u);
+  for (const auto & k : m) {
+    EXPECT_DOUBLE_EQ(k.nx, 0.0);
+    EXPECT_DOUBLE_EQ(k.ny, -1.0);
+  }
+}
+
+TEST(LandmarksIo, InvalidNormalAxisThrows) {
+  EXPECT_THROW(
+    al_nav2_plugins::loadLandmarks(kFile, {}, 0.0, -1.0, nullptr, "up"), std::runtime_error);
 }

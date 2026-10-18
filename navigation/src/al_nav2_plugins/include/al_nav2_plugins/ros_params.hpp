@@ -121,7 +121,8 @@ ScorerSetup loadScorerSetup(const NodePtr & node, const std::string & name)
 
   if (!s.isNull()) {
     const std::vector<int> ids(ids64.begin(), ids64.end());
-    s.markers = loadLandmarks(file, ids, normal[0], normal[1]);
+    s.markers = loadLandmarks(
+      file, ids, normal[0], normal[1], nullptr, paramString(node, name, "marker_normal_axis", ""));
     if (s.markers.empty()) {
       throw std::runtime_error(name + ": no markers left after filtering marker_ids");
     }
