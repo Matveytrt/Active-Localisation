@@ -6,9 +6,11 @@
 #   2. global_costmap: + loc_layer (al_nav2_plugins/LocalizabilityLayer) before inflation.
 #   3. MPPI: PathAlignCritic.use_path_orientations: true (exists in Humble 1.1.20,
 #      FACTS 18.10), PathAngleCritic + PreferForwardCritic disabled.
-# Control run (D-2): same file with GridBased.scorer and loc_layer.scorer = "null".
-# Plugin parameter NAMES follow tasks/T-009 §2–4 and must match DEV's plugins
-# (T-009b/c) — [to be aligned when the plugins exist].
+# Control run (D-2, spec v2): same file with GridBased.scorer: "null",
+# loc_layer.scorer: "null" and loc_layer.enabled: false (runner --mode control).
+# Scorer/DP values = spec v2 (RND-7): k_a 20, r_min 0.66, k_r 40, k_yaw_rate 2.0.
+# Parameter NAMES checked against al_nav2_plugins (PR #13: ros_params.hpp,
+# localizability_layer.cpp, localization_aware_planner.cpp). c_max stays an int.
 # =============================================================================
 bt_navigator:
   ros__parameters:
@@ -297,9 +299,9 @@ global_costmap:
         focal_px: 528.43
         marker_size: 0.08
         a_min: 500.0
-        k_a: 10.0
-        r_min: 0.70
-        k_r: 20.0
+        k_a: 20.0
+        r_min: 0.66
+        k_r: 40.0
         m_sat: 1.0
         cam_offset_x: 0.07
         occlusion_margin: 0.20
@@ -374,9 +376,9 @@ planner_server:
       focal_px: 528.43
       marker_size: 0.08
       a_min: 500.0
-      k_a: 10.0
-      r_min: 0.70
-      k_r: 20.0
+      k_a: 20.0
+      r_min: 0.66
+      k_r: 40.0
       m_sat: 1.0
       cam_offset_x: 0.07
       occlusion_margin: 0.20
@@ -386,7 +388,7 @@ planner_server:
       w_s: 1.0
       w_f: 0.3
       w_sm: 0.5
-      k_yaw_rate: 1.0
+      k_yaw_rate: 2.0
       w_lim: 100.0
       inner:                           # baseline Theta* values, unchanged
         how_many_corners: 8
