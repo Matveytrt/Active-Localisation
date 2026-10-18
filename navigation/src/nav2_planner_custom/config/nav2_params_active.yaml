@@ -305,7 +305,7 @@ global_costmap:
         m_sat: 1.0
         cam_offset_x: 0.07
         occlusion_margin: 0.20
-        c_max: 40                      # tuned by ENG dry runs (T-009d)
+        c_max: 150                     # DIR 18.10 (LEAD-31: route bends only from ~120-160)
         yaw_bins: 36
         power: 1.0
       static_layer:
