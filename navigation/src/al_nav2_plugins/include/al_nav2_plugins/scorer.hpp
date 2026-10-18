@@ -1,3 +1,23 @@
+// Copyright 2026 Matvey Razgulov
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
 // S2* scorer (ADR-001, spec T-009 section 2): soft count of detectable markers.
 //
 //   w_i = sig(k_fov (HFOV/2 - |beta_i|)) * sig(k_a (A_i / a_min - 1))
@@ -9,6 +29,7 @@
 // the gtests compare against its JSON fixtures. Header-only, no ROS.
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <functional>
@@ -32,16 +53,16 @@ struct Marker
   double ny{-1.0};
 };
 
-// Defaults = spec T-009 section 2 / FACTS 18.10. Every value is overridable
+// Defaults = spec T-009 v2 section 2 (RND-7) / FACTS 18.10. Every value is overridable
 // from the plugin YAML.
 struct ScorerParams
 {
   double hfov{1.089};
   double k_fov{40.0};
   double a_min{500.0};
-  double k_a{10.0};
-  double r_min{0.70};
-  double k_r{20.0};
+  double k_a{20.0};
+  double r_min{0.66};
+  double k_r{40.0};
   double focal_px{528.4};
   double marker_size{0.08};
   double m_sat{1.0};

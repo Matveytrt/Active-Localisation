@@ -1,3 +1,23 @@
+// Copyright 2026 Matvey Razgulov
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
 // Route lever core (spec T-009 section 3): best-over-yaw score per cell mapped
 // to a costmap cost.
 //
@@ -19,6 +39,22 @@ namespace al_nav2_plugins
 {
 
 constexpr int kMaxLayerCost = 252;   // 253+ = INSCRIBED / LETHAL / NO_INFORMATION
+// nav2_costmap_2d cost_values.hpp: INSCRIBED_INFLATED_OBSTACLE = 253, LETHAL_OBSTACLE = 254,
+// NO_INFORMATION = 255. Mirrored here so the combine rule stays testable without ROS.
+constexpr int kCostInscribed = 253;
+
+// Spec T-009 v2 section 3: the layer is ADDED to the master cost (a max() would flatten
+// the inflation gradient below c_max and let paths hug the shelves):
+//   master' = min(master + layer, 252)  on cells that are not INSCRIBED / LETHAL /
+//                                       NO_INFORMATION (master < 253);
+//   master' = master                    on those cells.
+inline std::uint8_t combineCost(std::uint8_t master, std::uint8_t layer)
+{
+  if (master >= kCostInscribed) {
+    return master;
+  }
+  return static_cast<std::uint8_t>(std::min(static_cast<int>(master) + layer, kMaxLayerCost));
+}
 
 struct CostFieldParams
 {

@@ -1,3 +1,23 @@
+// Copyright 2026 Matvey Razgulov
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
 // Parameter loading shared by both plugins. Both read the scorer under their own
 // plugin name (`loc_layer.*` for the layer, `GridBased.*` for the planner), with the
 // same keys as active_localization/config and tasks/T-009 section 2.
@@ -19,7 +39,8 @@ namespace al_nav2_plugins
 // Declares `<name>.<key>` (if still undeclared) and returns its value. NodePtr is any
 // shared_ptr to a (lifecycle) node.
 template<typename NodePtr>
-double paramDouble(const NodePtr & node, const std::string & name, const std::string & key,
+double paramDouble(
+  const NodePtr & node, const std::string & name, const std::string & key,
   double def)
 {
   const std::string full = name + "." + key;
@@ -44,7 +65,8 @@ bool paramBool(const NodePtr & node, const std::string & name, const std::string
 }
 
 template<typename NodePtr>
-std::string paramString(const NodePtr & node, const std::string & name, const std::string & key,
+std::string paramString(
+  const NodePtr & node, const std::string & name, const std::string & key,
   const std::string & def)
 {
   const std::string full = name + "." + key;

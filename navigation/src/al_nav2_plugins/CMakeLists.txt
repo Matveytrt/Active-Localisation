@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.8)
 project(al_nav2_plugins)
 
+if(NOT CMAKE_BUILD_TYPE)
+  # The layer evaluates ~1e6 scorer calls once per map; -O0 would be needlessly slow.
+  set(CMAKE_BUILD_TYPE Release)
+endif()
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 17)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -74,6 +78,13 @@ if(BUILD_TESTING)
   target_include_directories(test_landmarks_io PRIVATE include test)
   target_compile_definitions(test_landmarks_io PRIVATE AL_FIXTURE_DIR="${AL_FIXTURE_DIR}")
   target_link_libraries(test_landmarks_io ${PROJECT_NAME})
+
+  # ROS-level: the planner wrapper on a synthetic costmap (inner Theta* loaded via pluginlib).
+  ament_add_gtest(test_planner test/test_planner.cpp)
+  target_include_directories(test_planner PRIVATE include test)
+  target_compile_definitions(test_planner PRIVATE AL_FIXTURE_DIR="${AL_FIXTURE_DIR}")
+  target_link_libraries(test_planner ${PROJECT_NAME})
+  ament_target_dependencies(test_planner ${dependencies})
 endif()
 
 ament_export_include_directories(include)

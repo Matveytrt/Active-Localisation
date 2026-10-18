@@ -1,3 +1,23 @@
+// Copyright 2026 Matvey Razgulov
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
 // S2* scorer vs the Python oracle's golden fixtures (scorer_cases.json) and the
 // check values of spec T-009 section 2.
 #include <gtest/gtest.h>
@@ -71,16 +91,21 @@ TEST(Scorer, SpecCheckValues) {
       return scorer.detail(xm, id1.y - r - p.cam_offset_x, yaw);
     };
 
+  // v2 parameters (k_a 20, r_min 0.66, k_r 40): the defaults of ScorerParams.
   auto d1 = at_camera_range(1.0);
   EXPECT_NEAR(d1.markers[0].w, 1.0, 5e-3);
   EXPECT_NEAR(d1.s, 0.63, 5e-3);
 
   auto d2 = at_camera_range(1.88);   // area == A_min -> w ~ 0.5
   EXPECT_NEAR(d2.markers[0].area, 505.6, 0.5);
-  EXPECT_NEAR(d2.markers[0].w, 0.5, 0.05);
+  EXPECT_NEAR(d2.markers[0].w, 0.556, 0.01);   // sigma(20 * (505.6 / 500 - 1))
 
   auto d3 = at_camera_range(0.6);
-  EXPECT_NEAR(d3.markers[0].w, 0.12, 0.01);
+  EXPECT_NEAR(d3.markers[0].w, 0.083, 0.005);   // sigma(40 * (0.6 - 0.66)); spec v2: ~0.08
+
+  // no detection at 0.61 m, detection at 0.71 m (ENG-10), centred by r_min = 0.66
+  EXPECT_NEAR(at_camera_range(0.61).markers[0].g_near, 0.12, 0.01);
+  EXPECT_NEAR(at_camera_range(0.71).markers[0].g_near, 0.88, 0.01);
 
   // turned 90 deg away from the marker
   EXPECT_LT(scorer.score(xm, id1.y - 1.0 - p.cam_offset_x, yaw + M_PI / 2.0), 1e-6);

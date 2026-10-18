@@ -1,3 +1,23 @@
+// Copyright 2026 Matvey Razgulov
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
 // LocalizabilityLayer core vs the Python oracle (layer_cost_cases.json).
 #include <gtest/gtest.h>
 
@@ -36,6 +56,26 @@ CellGrid gridFrom(const mini_json::Value & h)
   return g;
 }
 }  // namespace
+
+// Spec v2 section 3: additive combine on one cell at a time.
+TEST(CostField, CombineIsAdditiveAndCapped) {
+  using al_nav2_plugins::combineCost;
+  EXPECT_EQ(combineCost(0, 40), 40);      // free cell: master + cost
+  EXPECT_EQ(combineCost(10, 40), 50);     // adds on an inflation gradient (max() would give 40)
+  EXPECT_EQ(combineCost(10, 0), 10);      // zero layer cost changes nothing
+  EXPECT_EQ(combineCost(200, 40), 240);
+  EXPECT_EQ(combineCost(230, 40), 252);   // capped at 252, never reaches INSCRIBED (253)
+  EXPECT_EQ(combineCost(252, 40), 252);
+  EXPECT_EQ(combineCost(252, 0), 252);
+}
+
+TEST(CostField, CombineLeavesInscribedLethalAndUnknownAlone) {
+  using al_nav2_plugins::combineCost;
+  EXPECT_EQ(combineCost(253, 40), 253);   // INSCRIBED_INFLATED_OBSTACLE
+  EXPECT_EQ(combineCost(254, 40), 254);   // LETHAL_OBSTACLE
+  EXPECT_EQ(combineCost(255, 40), 255);   // NO_INFORMATION
+  EXPECT_EQ(combineCost(255, 0), 255);
+}
 
 TEST(CostField, SpecFormula) {
   CostFieldParams p;   // c_max 40, p 1

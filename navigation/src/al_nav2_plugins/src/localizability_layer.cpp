@@ -1,3 +1,23 @@
+// Copyright 2026 Matvey Razgulov
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
 #include "al_nav2_plugins/localizability_layer.hpp"
 
 #include <algorithm>
@@ -40,7 +60,8 @@ void LocalizabilityLayer::onInitialize()
   const CostFieldParams d;
   cost_params_.yaw_bins = paramInt(node, name_, "yaw_bins", d.yaw_bins);
   // c_max is an integer cost value (of 252); the YAML writes it as `c_max: 40`.
-  cost_params_.c_max = static_cast<double>(paramInt(node, name_, "c_max", static_cast<int>(d.c_max)));
+  cost_params_.c_max =
+    static_cast<double>(paramInt(node, name_, "c_max", static_cast<int>(d.c_max)));
   cost_params_.power = paramDouble(node, name_, "power", d.power);
   if (cost_params_.yaw_bins < 1) {
     throw std::runtime_error(name_ + ".yaw_bins must be >= 1");
@@ -178,12 +199,8 @@ void LocalizabilityLayer::updateCosts(
   for (int j = min_j; j < max_j; ++j) {
     for (int i = min_i; i < max_i; ++i) {
       const std::size_t idx = static_cast<std::size_t>(j) * span + static_cast<std::size_t>(i);
-      const unsigned char old = master_array[idx];
-      // Never touch unknown / inflated / lethal cells; add on free-ish cells (max rule).
-      if (old == nav2_costmap_2d::NO_INFORMATION || old >= nav2_costmap_2d::INSCRIBED_INFLATED_OBSTACLE) {
-        continue;
-      }
-      master_array[idx] = std::max<unsigned char>(old, costs_[idx]);
+      // Additive rule of spec v2; unknown / inscribed / lethal cells are left alone.
+      master_array[idx] = combineCost(master_array[idx], costs_[idx]);
     }
   }
 }
