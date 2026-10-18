@@ -17,3 +17,8 @@ traj_recorder:
     gt_offset_x: 0.0
     gt_offset_y: 0.0
     gt_offset_yaw: 0.0
+    # Secondary recordings (T-011a). [unverified] on the testbed.
+    record_landmarks: true    # landmarks.csv from rtabmap_msgs/LandmarkDetections
+    landmarks_topic: "/landmark_detections"   # published by tf_to_fiducial
+    record_map_odom: true     # map_odom.tum: TF map_frame->odom_frame @ rate_hz
+    odom_frame: "odom"

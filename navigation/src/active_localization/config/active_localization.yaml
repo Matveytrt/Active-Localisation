@@ -30,9 +30,9 @@ scorer:
   params:
     k_fov: 40.0         # rad^-1
     a_min: 500.0        # px^2 (ENG-10)
-    k_a: 10.0
-    r_min: 0.70         # m (ENG-10)
-    k_r: 20.0           # m^-1
+    k_a: 20.0           # RND-7: w(1.97 m, never detected) 0.15
+    r_min: 0.66         # m, RND-7: centred between 0.61 (✗) and 0.71 (✓)
+    k_r: 40.0           # m^-1 (RND-7)
     focal_px: 528.4     # px
     marker_size: 0.08   # m
     m_sat: 1.0          # M
@@ -51,7 +51,7 @@ yaw_planner:
   w_forward: 0.3        # spec T-009 §4
   w_smooth: 0.5
   w_limit: 100.0
-  max_dyaw_per_m: 1.0
+  max_dyaw_per_m: 2.0   # RND-7: wz_max / v_cruise ≈ 1.0 / 0.5 [estimate until T-009d]
   pin_start: true
   pin_goal: true
 

@@ -36,7 +36,7 @@ HALF_PI = math.pi / 2
 # Spec §4 DP parameters (YawPlannerParams field names; spec names in comments).
 DP_PARAMS = {'n_bins': 36, 'step': 0.20, 'w_score': 1.0,   # B, step, w_s
              'w_forward': 0.3, 'w_smooth': 0.5,              # w_f, w_sm
-             'w_limit': 100.0, 'max_dyaw_per_m': 1.0,        # w_lim, k
+             'w_limit': 100.0, 'max_dyaw_per_m': 2.0,        # w_lim, k (RND-7)
              'pin_start': True, 'pin_goal': True}
 DP_POLYLINE = [[-2.0, -0.5], [2.6, -0.5], [2.6, 4.6]]   # south corridor, then up the east side
 DP_START_YAW = 0.0

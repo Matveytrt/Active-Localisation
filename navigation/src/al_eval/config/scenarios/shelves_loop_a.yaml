@@ -1,0 +1,14 @@
+# ENG proposal (T-009d / GATE-2): 3-goal loop that passed 3/3 under baseline Nav2
+# with RTAB-Map localization on the 17.10 map (FACTS 18.10, nav_runs_20261018_000204.csv).
+# Start = spawn pose (-2.0, -0.5, 0) after the start-up nudge. map ~= world in x/y.
+# Leg 1 runs along the south corridor in front of shelf row 1 (HD17 ids 1, 2 face -y),
+# leg 2 goes up the east aisle into the aisle between the rows (ids 3-5 face -y),
+# leg 3 returns west/south to the start. Final choice of goals: LEAD/RND.
+name: shelves_loop_a
+frame_id: map
+goal_timeout_s: 180    # wall-clock per goal (RTF ~0.6 with the full stack)
+settle_s: 2.0
+goals:
+  - {x: 2.6, y: -0.8, yaw: 1.5708}
+  - {x: -0.5, y: 2.45, yaw: 1.5708}
+  - {x: -2.0, y: -0.5, yaw: 0.0}

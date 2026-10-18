@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate synthetic runs (gt.tum + est.tum) to sanity-check run_evo.sh.
+"""Generate synthetic runs to sanity-check run_evo.sh / summarize / plots.
 
 GT: circle r=2 m centred at the origin, 60 s, 50 Hz, heading tangent to the
 circle, t0 = 100 s (sim-time-like). est: 10 Hz, stamps shifted by +4 ms with
@@ -10,9 +10,38 @@ pose computed analytically at its own stamp, then perturbed:
   noise  est = GT + N(0, sigma^2) on x and y      -> APE RMSE ~ sigma*sqrt(2)
   drift  est = GT + (k * (t - t0), 0, 0), k=5 mm/s -> APE grows linearly
 
+Experiment case (``--case experiment``): <mode>_<NN> run dirs for the
+modes baseline / active / control x ``--runs`` (default 3), each with the
+files a real run has: gt.tum, est.tum, landmarks.csv, map_odom.tum,
+result.yaml (al_eval.scenario format), run.yaml (run_experiment.sh keys).
+GT: ellipse centred (-0.8, -0.6), semi-axes 3.0 x 1.1 m (inside the room,
+south of the shelf rows), one lap; 60 s (baseline/control), 66 s (active).
+Error model (translation + yaw, 10 Hz ticks; a toy, not a simulator):
+
+  odometry drift d += v dt + random walk     (v ~ 6 mm/s, seeded per run)
+  correction     c += alpha (d - c)          alpha = 0.25 on a tick with a
+                                             landmark detection, 0.02 else
+                                             (lidar ICP)
+  est = GT + (d - c) + N(0, 0.01^2);  map->odom = -c  (pure translation +
+  yaw, written as map_odom.tum)
+
+Detections happen in arcs of the lap (wider arcs for active), with a
+per-tick probability 0.9; ids depend on the arc. Run baseline_03 has one
+aborted goal so that "goals succeeded" is exercised.
+
+Outside the evaluation window (the goals, [T0, T0 + duration], written as
+per-goal start_sim_s / end_sim_s in result.yaml) the recording has a
+4 s pre-roll and a 2 s post-roll with the robot standing still at the
+start / end pose (separate RNG, so the in-window samples do not depend on
+it). Pre-roll: est has a localization-init transient (0.3 m along x,
+decaying with tau 0.8 s) that must be cropped away. In run control_03 the
+first 1.5 s of map->odom are a wrong DB init (1.0 m, 157 deg) so that the
+bad-DB-init sanity flag is exercised.
+
 Usage:
   make_synthetic.py OUT_DIR                     # OUT_DIR/{shift,noise,drift}
   make_synthetic.py OUT_DIR --case noise --sigma 0.02 --seed 7 --name a_1
+  make_synthetic.py OUT_DIR --case experiment [--runs 3] [--seed 0]
 """
 
 from __future__ import annotations
@@ -25,7 +54,9 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', 'navigation', 'src', 'al_eval'))
-from al_eval.tum import TumWriter, yaw_to_quat  # noqa: E402
+from al_eval import scenario as sc  # noqa: E402
+from al_eval.recorder_helpers import LandmarkCsvWriter  # noqa: E402
+from al_eval.tum import TumWriter, wrap_angle, yaw_to_quat  # noqa: E402
 
 R = 2.0
 DURATION = 60.0
@@ -72,12 +103,186 @@ def write_run(run_dir: str, case: str, sigma: float, seed: int,
     print('wrote %s (case=%s)' % (run_dir, case))
 
 
+# ------------------------------------------------------------------ experiment
+EXP_MODES = ('baseline', 'active', 'control')
+ELLIPSE = {'cx': -0.8, 'cy': -0.6, 'a': 3.0, 'b': 1.1}
+EXP_DURATION = {'baseline': 60.0, 'active': 66.0, 'control': 60.0}
+# Arcs of the lap phase [rad] with landmark detections, and their ids.
+EXP_ARCS = {
+    'baseline': [(0.4, 1.2, (1,)), (3.4, 4.0, (3, 4))],
+    'control': [(0.4, 1.2, (1,)), (3.4, 4.0, (3, 4))],
+    'active': [(0.1, 1.7, (1, 2)), (2.9, 4.6, (3, 4)), (5.4, 6.0, (5,))],
+}
+ALPHA_DET = 0.25
+ALPHA_ICP = 0.02
+EST_NOISE = 0.01
+N_GOALS = 4
+PRE_ROLL = 4.0
+POST_ROLL = 2.0
+INIT_TRANSIENT = 0.3      # m, est error at the first pre-roll sample
+INIT_TAU = 0.8            # s
+BAD_INIT_RUN = ('control', 3)
+BAD_INIT = (1.0, 0.0, math.radians(157.0))
+BAD_INIT_S = 1.5
+
+
+def ellipse_pose(phase: float):
+    """(x, y, yaw) on the experiment ellipse, heading along the path."""
+    e = ELLIPSE
+    x = e['cx'] + e['a'] * math.cos(phase)
+    y = e['cy'] + e['b'] * math.sin(phase)
+    yaw = math.atan2(e['b'] * math.cos(phase), -e['a'] * math.sin(phase))
+    return x, y, yaw
+
+
+def _arc_length(p0: float, p1: float, n: int = 2000) -> float:
+    pts = [ellipse_pose(p0 + (p1 - p0) * k / n)[:2] for k in range(n + 1)]
+    return sum(math.hypot(b[0] - a[0], b[1] - a[1])
+               for a, b in zip(pts, pts[1:]))
+
+
+def write_experiment_run(run_dir: str, mode: str, index: int,
+                         seed: int) -> None:
+    run_seed = seed * 1000 + EXP_MODES.index(mode) * 100 + index
+    rnd = random.Random(run_seed)
+    duration = EXP_DURATION[mode]
+    omega = 2.0 * math.pi / duration
+
+    def phase(t: float) -> float:
+        # standing still before T0 (pre-roll) and after the lap (post-roll)
+        return omega * min(max(t - T0, 0.0), duration)
+
+    t_rec0 = T0 - PRE_ROLL
+    with TumWriter(os.path.join(run_dir, 'gt.tum')) as w:
+        n_gt = int(round((PRE_ROLL + duration + POST_ROLL) * GT_HZ))
+        for i in range(n_gt + 1):
+            t = t_rec0 + i / GT_HZ
+            x, y, yaw = ellipse_pose(phase(t))
+            w.write(t, x, y, Z, *yaw_to_quat(yaw))
+
+    # per-run jitter of the detection arcs (seeded) and odometry drift
+    arcs = [(lo + rnd.uniform(-0.1, 0.1), hi + rnd.uniform(-0.1, 0.1), ids)
+            for lo, hi, ids in EXP_ARCS[mode]]
+    ang = rnd.uniform(0.0, 2.0 * math.pi)
+    v = (0.006 * math.cos(ang), 0.006 * math.sin(ang))
+    v_yaw = rnd.choice((-1.0, 1.0)) * 0.002
+    rnd_out = random.Random(run_seed + 10 ** 7)  # pre/post-roll noise only
+    bad_init = (mode, index) == BAD_INIT_RUN
+    d = [0.0, 0.0, 0.0]
+    c = [0.0, 0.0, 0.0]
+    dt = 1.0 / EST_HZ
+    est_w = TumWriter(os.path.join(run_dir, 'est.tum'))
+    mo_w = TumWriter(os.path.join(run_dir, 'map_odom.tum'))
+    lm_w = LandmarkCsvWriter(os.path.join(run_dir, 'landmarks.csv'))
+
+    def write_still(t: float, err) -> None:
+        x, y, yaw = ellipse_pose(phase(t))
+        est_w.write(t, x + err[0] + rnd_out.gauss(0.0, EST_NOISE),
+                    y + err[1] + rnd_out.gauss(0.0, EST_NOISE), Z,
+                    *yaw_to_quat(wrap_angle(yaw + err[2])))
+
+    try:
+        for i in range(int(round(PRE_ROLL * EST_HZ))):
+            t = t_rec0 + i / EST_HZ + EST_STAMP_SHIFT
+            k = INIT_TRANSIENT * math.exp(-(t - t_rec0) / INIT_TAU)
+            write_still(t, (k, 0.0, 0.0))
+            if bad_init and t - t_rec0 < BAD_INIT_S:
+                mo_w.write(t, BAD_INIT[0], BAD_INIT[1], 0.0,
+                           *yaw_to_quat(BAD_INIT[2]))
+            else:
+                mo_w.write(t, 0.0, 0.0, 0.0, *yaw_to_quat(0.0))
+        for i in range(int(round(duration * EST_HZ))):
+            t = T0 + i / EST_HZ + EST_STAMP_SHIFT
+            ph = phase(t) % (2.0 * math.pi)
+            ids = ()
+            for lo, hi, arc_ids in arcs:
+                if lo <= ph <= hi and rnd.random() < 0.9:
+                    ids = arc_ids
+            d[0] += v[0] * dt + rnd.gauss(0.0, 0.002)
+            d[1] += v[1] * dt + rnd.gauss(0.0, 0.002)
+            d[2] += v_yaw * dt + rnd.gauss(0.0, 0.0005)
+            alpha = ALPHA_DET if ids else ALPHA_ICP
+            for k in range(3):
+                c[k] += alpha * (d[k] - c[k])
+            x, y, yaw = ellipse_pose(phase(t))
+            ex, ey, eyaw = d[0] - c[0], d[1] - c[1], d[2] - c[2]
+            est_w.write(t, x + ex + rnd.gauss(0.0, EST_NOISE),
+                        y + ey + rnd.gauss(0.0, EST_NOISE), Z,
+                        *yaw_to_quat(wrap_angle(yaw + eyaw)))
+            mo_w.write(t, -c[0], -c[1], 0.0, *yaw_to_quat(-c[2]))
+            if ids:
+                lm_w.write(t, ids)
+        err = (d[0] - c[0], d[1] - c[1], d[2] - c[2])
+        for i in range(int(round(POST_ROLL * EST_HZ))):
+            t = T0 + duration + i / EST_HZ + EST_STAMP_SHIFT
+            write_still(t, err)
+            mo_w.write(t, -c[0], -c[1], 0.0, *yaw_to_quat(-c[2]))
+    finally:
+        est_w.close()
+        mo_w.close()
+        lm_w.close()
+
+    # result.yaml: four goals at the quarter points of the lap
+    goals = [sc.Goal(*ellipse_pose(2.0 * math.pi * (k + 1) / N_GOALS))
+             for k in range(N_GOALS)]
+    scen = sc.Scenario(name='synthetic_loop', frame_id='map',
+                       goal_timeout_s=120.0, settle_s=0.0, goals=goals)
+    name = '%s_%02d' % (mode, index)
+    res = sc.RunResult.for_scenario(scen, run_name=name, mode=mode,
+                                    seed=42 + index - 1,
+                                    start_wall='2026-10-18T00:00:00',
+                                    end_wall='2026-10-18T00:01:10')
+    for k, g in enumerate(res.goals):
+        g.status = 'succeeded'
+        g.duration_sim_s = duration / N_GOALS
+        g.start_sim_s = T0 + k * duration / N_GOALS
+        g.end_sim_s = T0 + (k + 1) * duration / N_GOALS
+        g.duration_wall_s = 1.05 * duration / N_GOALS
+        g.path_length_m = _arc_length(2.0 * math.pi * k / N_GOALS,
+                                      2.0 * math.pi * (k + 1) / N_GOALS)
+        g.recoveries = 0
+        g.set_final_pose(g.x + 0.05, g.y, g.yaw)
+    if mode == 'baseline' and index == 3:
+        res.goals[2].status = 'aborted'
+        res.goals[2].message = 'synthetic failure'
+    sc.write_result(os.path.join(run_dir, 'result.yaml'), res)
+
+    run_yaml = {
+        'run_name': name, 'mode': mode, 'run_index': index,
+        'seed': 42 + index - 1, 'scenario': 'synthetic_loop',
+        'scenario_file': 'synthetic', 'git_commit': 'synthetic',
+        'git_dirty': False, 'start_wall': res.start_wall,
+        'end_wall': res.end_wall, 'runner_exit_code': res.exit_code,
+        'error': '', 'launch': {},
+    }
+    sc.write_yaml(os.path.join(run_dir, 'run.yaml'), run_yaml)
+    with open(os.path.join(run_dir, 'synthetic.txt'), 'w') as f:
+        f.write('case=experiment mode=%s index=%d seed=%d duration=%g\n'
+                % (mode, index, seed, duration))
+    print('wrote %s (experiment, %s)' % (run_dir, mode))
+
+
+def write_experiment(out_dir: str, runs: int, seed: int,
+                     modes=EXP_MODES) -> list:
+    """All <mode>_<NN> run dirs; returns their paths."""
+    paths = []
+    for mode in modes:
+        for i in range(1, runs + 1):
+            p = os.path.join(out_dir, '%s_%02d' % (mode, i))
+            write_experiment_run(p, mode, i, seed)
+            paths.append(p)
+    return paths
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawTextHelpFormatter)
     ap.add_argument('out_dir')
-    ap.add_argument('--case', choices=['all', 'shift', 'noise', 'drift'],
-                    default='all')
+    ap.add_argument('--case', choices=['all', 'shift', 'noise', 'drift',
+                                       'experiment'],
+                    default='all',
+                    help="'all' = shift, noise and drift; 'experiment' = "
+                         '3 modes x --runs run dirs')
     ap.add_argument('--name', default=None,
                     help='run dir name (default: the case name)')
     ap.add_argument('--sigma', type=float, default=0.05)
@@ -85,8 +290,17 @@ def main() -> int:
     ap.add_argument('--shift', type=float, default=0.10)
     ap.add_argument('--drift_rate', type=float, default=0.005,
                     help='m/s along x')
+    ap.add_argument('--runs', type=int, default=3,
+                    help='runs per mode for --case experiment')
     a = ap.parse_args()
 
+    if a.case == 'experiment':
+        if a.name:
+            ap.error('--name is not used with --case experiment')
+        if a.runs < 1:
+            ap.error('--runs must be >= 1')
+        write_experiment(a.out_dir, a.runs, a.seed)
+        return 0
     cases = ['shift', 'noise', 'drift'] if a.case == 'all' else [a.case]
     if a.name and len(cases) > 1:
         ap.error('--name requires a single --case')

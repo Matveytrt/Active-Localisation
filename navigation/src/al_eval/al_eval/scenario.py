@@ -236,6 +236,12 @@ class GoalResult:
     status: str = 'skipped'
     duration_wall_s: Optional[float] = None
     duration_sim_s: Optional[float] = None
+    # Sim-time stamps [s] (same clock as the recorder's TUM stamps when the
+    # runner uses use_sim_time) of goal sending and of the goal's end; the
+    # evaluation window is [start_sim_s of the first goal, end_sim_s of the
+    # last goal] (eval/crop_run.py).
+    start_sim_s: Optional[float] = None
+    end_sim_s: Optional[float] = None
     # Path length of the GT odometry topic while this goal was active [m].
     path_length_m: Optional[float] = None
     # Distance of the *estimated* pose (TF frame_id->base_link) to the goal
@@ -320,6 +326,8 @@ class RunResult:
                 'status': g.status,
                 'duration_wall_s': num(g.duration_wall_s),
                 'duration_sim_s': num(g.duration_sim_s),
+                'start_sim_s': num(g.start_sim_s),
+                'end_sim_s': num(g.end_sim_s),
                 'path_length_m': num(g.path_length_m),
                 'final_xy_error_m': num(g.final_xy_error_m),
                 'final_yaw_error_rad': num(g.final_yaw_error_rad),

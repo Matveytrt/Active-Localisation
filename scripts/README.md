@@ -27,6 +27,35 @@ Options: `--mode baseline|active`, `--runs N`, `--scenario <yaml>`,
 (default `~/al_runs`), `--overwrite`, `--dry-run` (prints every command and
 executes nothing; only the scenario is validated on the host).
 
+### Testbed set-up before the first run (ENG, T-009d / T-004)
+
+1. **Odometry noise wiring (T-004, D-3).** `gazebo_cmd_vel.xacro` publishes the
+   ideal planar_move odometry as `/odom_gt` without TF; `al_odom_noise`
+   (started by the runner as `NOISE_LAUNCH`) publishes `/odom` + TF
+   `odom->base_link`. Outside the runner start it by hand
+   (`ros2 launch al_odom_noise odom_noise.launch.py`), otherwise there is no `/odom`.
+2. **Pristine map DB.** RTAB-Map in localization mode starts from the last
+   localization saved in the DB and writes to it (FACTS 18.10). The runner copies
+   `PRISTINE_DB` over `DB_PATH` before every run. Make the pristine copy once,
+   right after mapping (the DB in `navigation/maps/` is mounted at
+   `/home/app/ros2_ws/maps`; on the WSL testbed `~/al_maps` is mounted instead):
+   `cp maps/astribot_sim.db maps/astribot_sim.pristine.db`.
+3. **Start-up nudge** (`scripts/al_nudge.py`, both modes): RTAB-Map publishes no
+   `map->odom` until the robot moves, and Nav2 never activates without it. The
+   runner drives 0.6 m forward and back on `/odom_gt` before starting Nav2
+   (`NUDGE_ENABLE`, `NUDGE_ARGS`).
+4. **Build** `al_eval al_odom_noise active_localization` in the navigation
+   container (see above) — they are not in the image yet.
+5. **Active mode** uses `nav2_planner_custom/config/nav2_params_active.yaml`
+   (`NAV_PARAMS_ACTIVE`) = baseline params + the T-009 deltas; it needs the
+   `al_nav2_plugins` package (T-009b/c). `ACTIVE_LAUNCH` is empty by default.
+6. **Windows / WSL2 with a GPU** (ENG testbed): render the camera on the GPU via
+   WSLg D3D12 (`compose.override.yaml` mounts `/dev/dxg` and `/usr/lib/wsl`):
+   ```bash
+   export GAZEBO_LAUNCH='env LD_LIBRARY_PATH=/usr/lib/wsl/lib:$LD_LIBRARY_PATH GALLIUM_DRIVER=d3d12 MESA_D3D12_DEFAULT_ADAPTER_NAME=NVIDIA ros2 launch world_and_robot gazebo_sim.launch.py gazebo_gui:=false software_rendering:=false'
+   ```
+   (camera ~27 Hz sim instead of ~11 Hz with llvmpipe; FACTS 17.10).
+
 ### Per run
 
 1. Stop every launched stack in both containers: SIGINT to `ros2 launch`,
@@ -59,7 +88,7 @@ Placeholders in launch commands: `@SEED@`, `@RUN_NAME@`, `@RUNS_DIR@`,
 | file | from |
 |---|---|
 | `gt.tum`, `est.tum`, `meta.yaml` | `traj_recorder` |
-| `result.yaml` | `scenario_runner`: per-goal status (`succeeded`, `aborted`, `canceled`, `timeout`, `rejected`, `error`, `skipped`), wall/sim duration, GT path length, final xy/yaw error of the estimated pose, Nav2 recoveries; summary |
+| `result.yaml` | `scenario_runner`: per-goal status (`succeeded`, `aborted`, `canceled`, `timeout`, `rejected`, `error`, `skipped`), wall/sim duration, sim-time start/end stamps (`start_sim_s`/`end_sim_s`, the evaluation window of `eval/crop_run.py`), GT path length, final xy/yaw error of the estimated pose, Nav2 recoveries; summary |
 | `scenario.yaml` | copy of the scenario used |
 | `run.yaml` | mode, seed, scenario name/file, git commit (+ dirty flag), start/end wall time, `runner_exit_code`, error, resolved launch commands |
 | `logs/*.log`, `logs/gazebo/*.log` | output of every stack and of `scenario_runner` |

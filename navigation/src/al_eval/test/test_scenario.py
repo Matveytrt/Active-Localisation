@@ -182,7 +182,14 @@ def test_result_success_and_yaml(tmp_path):
         'exit_code': 0, 'error': ''}
     assert d['goals'][1]['goal'] == {'x': 1.0, 'y': 2.5, 'yaw': -1.0}
     assert d['goals'][1]['status'] == 'succeeded'
+    # sim-time stamps of the goal window: None until set by the runner
+    assert d['goals'][0]['start_sim_s'] is None
+    assert d['goals'][0]['end_sim_s'] is None
     assert not os.path.exists(str(p) + '.tmp')
+    rr.goals[0].start_sim_s = 1234.5678901
+    rr.goals[0].end_sim_s = 1250.25
+    g0 = rr.to_dict()['goals'][0]
+    assert (g0['start_sim_s'], g0['end_sim_s']) == (1234.56789, 1250.25)
 
 
 def test_result_failure_codes():
@@ -445,6 +452,14 @@ def test_node_all_succeed(node_mod, tmp_path):
     # fake TF pose is (1, 0, 0): goal 0 at (1, 0) -> 0 error, goal 1 -> 1 m
     assert d['goals'][0]['final_xy_error_m'] == pytest.approx(0.0)
     assert d['goals'][1]['final_xy_error_m'] == pytest.approx(1.0)
+    # goal window stamps from the node clock: ordered, consistent with the
+    # sim durations
+    g0, g1 = d['goals']
+    assert g0['start_sim_s'] <= g0['end_sim_s'] <= g1['start_sim_s'] <= (
+        g1['end_sim_s'])
+    for gg in (g0, g1):
+        assert gg['end_sim_s'] - gg['start_sim_s'] == pytest.approx(
+            gg['duration_sim_s'], abs=1e-5)
     g = _ActionClient.sent[1]
     assert g.pose.header.frame_id == 'map' and g.pose.pose.position.x == 2.0
     assert g.pose.pose.orientation.w == pytest.approx(1.0)
