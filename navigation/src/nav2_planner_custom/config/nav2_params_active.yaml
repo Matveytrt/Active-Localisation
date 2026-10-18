@@ -195,7 +195,7 @@ controller_server:
         max_path_occupancy_ratio: 0.05
         trajectory_point_step: 4
         threshold_to_consider: 0.5
-        offset_from_furthest: 20
+        offset_from_furthest: 4      # ACTIVE: 20 never fires on the 0.20 m DP path (MPPI horizon 2.4 s ≈ 1.1 m ≈ 5-6 path points; Humble returns early if furthest < offset). 4 ≈ 0.8 m
         use_path_orientations: true    # ACTIVE: follow the DP headings
       PathFollowCritic:
         enabled: true
