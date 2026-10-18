@@ -170,22 +170,24 @@ seed `seed0 + i - 1` in every mode. Options and exit codes: `scripts/README.md`.
 ### 5. Evaluate
 
 ```bash
-for r in ~/al_runs/{baseline,active}_0{1,2,3}; do eval/run_evo.sh "$r"; done   # APE/RPE, no alignment
-python3 eval/aggregate.py \
-  --runs ~/al_runs/baseline_0{1,2,3} ~/al_runs/active_0{1,2,3} \
-  --labels baseline baseline baseline active active active \
-  --align none --out results/
-# TODO(JR, T-011a): 3-mode summary + plots -> eval_out/{summary.csv,summary.md,summary_table.tex}, figures
+# APE/RPE (translation + rotation), no alignment, cropped to the goal window
+for r in ~/al_runs/{baseline,active,control}_0{1,2,3}; do eval/run_evo.sh "$r"; done
+python3 eval/summarize.py ~/al_runs --out eval_out/          # tables (+ summary_table.tex)
+python3 eval/plots.py ~/al_runs --out eval_out/plots --score-map   # figures
 ```
+
+Details (evaluation window, metrics, paired view, sanity flag): `eval/README.md`.
+`eval/aggregate.py` (APE/RPE only, two labels) still works on the same `evo_none/`.
 
 ### 6. Where the results go
 
 | Path | Content |
 |---|---|
 | `~/al_runs/<mode>_<NN>/` | `gt.tum`, `est.tum`, `meta.yaml`, `result.yaml`, `scenario.yaml`, `run.yaml`, `logs/` (one dir per run) |
-| `~/al_runs/<mode>_<NN>/evo_none/` | evo results `ape.zip`, `rpe.zip`, plots, `commands.txt` |
+| `~/al_runs/<mode>_<NN>/` (eval) | `*_eval.tum`, `landmarks_eval.csv`, `eval_window.yaml` (`eval/crop_run.py`, called by `run_evo.sh`) |
+| `~/al_runs/<mode>_<NN>/evo_none/` | evo results `ape.zip`, `rpe.zip`, `ape_rot.zip`, `rpe_rot.zip`, plots, `commands.txt`, `eval_window.yaml` |
 | `results/` | `results.csv`, `summary.md`, `ape_rmse_boxplot.png` (`eval/aggregate.py`) |
-| `eval_out/` | TODO(T-011a): `summary_table.tex` read by the report, plots copied to `report/figures/` |
+| `eval_out/` | `summary.{csv,md}`, `summary_modes.csv`, `summary_paired.csv`, `summary_table.tex` (read by the report), `plots/` (copy the PDFs to `report/figures/`) |
 
 ### 7. Build the report
 

@@ -29,6 +29,15 @@ Detections happen in arcs of the lap (wider arcs for active), with a
 per-tick probability 0.9; ids depend on the arc. Run baseline_03 has one
 aborted goal so that "goals succeeded" is exercised.
 
+Outside the evaluation window (the goals, [T0, T0 + duration], written as
+per-goal start_sim_s / end_sim_s in result.yaml) the recording has a
+4 s pre-roll and a 2 s post-roll with the robot standing still at the
+start / end pose (separate RNG, so the in-window samples do not depend on
+it). Pre-roll: est has a localization-init transient (0.3 m along x,
+decaying with tau 0.8 s) that must be cropped away. In run control_03 the
+first 1.5 s of map->odom are a wrong DB init (1.0 m, 157 deg) so that the
+bad-DB-init sanity flag is exercised.
+
 Usage:
   make_synthetic.py OUT_DIR                     # OUT_DIR/{shift,noise,drift}
   make_synthetic.py OUT_DIR --case noise --sigma 0.02 --seed 7 --name a_1
@@ -108,6 +117,13 @@ ALPHA_DET = 0.25
 ALPHA_ICP = 0.02
 EST_NOISE = 0.01
 N_GOALS = 4
+PRE_ROLL = 4.0
+POST_ROLL = 2.0
+INIT_TRANSIENT = 0.3      # m, est error at the first pre-roll sample
+INIT_TAU = 0.8            # s
+BAD_INIT_RUN = ('control', 3)
+BAD_INIT = (1.0, 0.0, math.radians(157.0))
+BAD_INIT_S = 1.5
 
 
 def ellipse_pose(phase: float):
@@ -127,16 +143,20 @@ def _arc_length(p0: float, p1: float, n: int = 2000) -> float:
 
 def write_experiment_run(run_dir: str, mode: str, index: int,
                          seed: int) -> None:
-    rnd = random.Random(seed * 1000 + EXP_MODES.index(mode) * 100 + index)
+    run_seed = seed * 1000 + EXP_MODES.index(mode) * 100 + index
+    rnd = random.Random(run_seed)
     duration = EXP_DURATION[mode]
     omega = 2.0 * math.pi / duration
 
     def phase(t: float) -> float:
-        return omega * (t - T0)
+        # standing still before T0 (pre-roll) and after the lap (post-roll)
+        return omega * min(max(t - T0, 0.0), duration)
 
+    t_rec0 = T0 - PRE_ROLL
     with TumWriter(os.path.join(run_dir, 'gt.tum')) as w:
-        for i in range(int(round(duration * GT_HZ)) + 1):
-            t = T0 + i / GT_HZ
+        n_gt = int(round((PRE_ROLL + duration + POST_ROLL) * GT_HZ))
+        for i in range(n_gt + 1):
+            t = t_rec0 + i / GT_HZ
             x, y, yaw = ellipse_pose(phase(t))
             w.write(t, x, y, Z, *yaw_to_quat(yaw))
 
@@ -146,13 +166,31 @@ def write_experiment_run(run_dir: str, mode: str, index: int,
     ang = rnd.uniform(0.0, 2.0 * math.pi)
     v = (0.006 * math.cos(ang), 0.006 * math.sin(ang))
     v_yaw = rnd.choice((-1.0, 1.0)) * 0.002
+    rnd_out = random.Random(run_seed + 10 ** 7)  # pre/post-roll noise only
+    bad_init = (mode, index) == BAD_INIT_RUN
     d = [0.0, 0.0, 0.0]
     c = [0.0, 0.0, 0.0]
     dt = 1.0 / EST_HZ
     est_w = TumWriter(os.path.join(run_dir, 'est.tum'))
     mo_w = TumWriter(os.path.join(run_dir, 'map_odom.tum'))
     lm_w = LandmarkCsvWriter(os.path.join(run_dir, 'landmarks.csv'))
+
+    def write_still(t: float, err) -> None:
+        x, y, yaw = ellipse_pose(phase(t))
+        est_w.write(t, x + err[0] + rnd_out.gauss(0.0, EST_NOISE),
+                    y + err[1] + rnd_out.gauss(0.0, EST_NOISE), Z,
+                    *yaw_to_quat(wrap_angle(yaw + err[2])))
+
     try:
+        for i in range(int(round(PRE_ROLL * EST_HZ))):
+            t = t_rec0 + i / EST_HZ + EST_STAMP_SHIFT
+            k = INIT_TRANSIENT * math.exp(-(t - t_rec0) / INIT_TAU)
+            write_still(t, (k, 0.0, 0.0))
+            if bad_init and t - t_rec0 < BAD_INIT_S:
+                mo_w.write(t, BAD_INIT[0], BAD_INIT[1], 0.0,
+                           *yaw_to_quat(BAD_INIT[2]))
+            else:
+                mo_w.write(t, 0.0, 0.0, 0.0, *yaw_to_quat(0.0))
         for i in range(int(round(duration * EST_HZ))):
             t = T0 + i / EST_HZ + EST_STAMP_SHIFT
             ph = phase(t) % (2.0 * math.pi)
@@ -174,6 +212,11 @@ def write_experiment_run(run_dir: str, mode: str, index: int,
             mo_w.write(t, -c[0], -c[1], 0.0, *yaw_to_quat(-c[2]))
             if ids:
                 lm_w.write(t, ids)
+        err = (d[0] - c[0], d[1] - c[1], d[2] - c[2])
+        for i in range(int(round(POST_ROLL * EST_HZ))):
+            t = T0 + duration + i / EST_HZ + EST_STAMP_SHIFT
+            write_still(t, err)
+            mo_w.write(t, -c[0], -c[1], 0.0, *yaw_to_quat(-c[2]))
     finally:
         est_w.close()
         mo_w.close()
@@ -192,6 +235,8 @@ def write_experiment_run(run_dir: str, mode: str, index: int,
     for k, g in enumerate(res.goals):
         g.status = 'succeeded'
         g.duration_sim_s = duration / N_GOALS
+        g.start_sim_s = T0 + k * duration / N_GOALS
+        g.end_sim_s = T0 + (k + 1) * duration / N_GOALS
         g.duration_wall_s = 1.05 * duration / N_GOALS
         g.path_length_m = _arc_length(2.0 * math.pi * k / N_GOALS,
                                       2.0 * math.pi * (k + 1) / N_GOALS)

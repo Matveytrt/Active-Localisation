@@ -2,32 +2,55 @@
 """Per-run and per-mode summary of an experiment (APE/RPE + secondary metrics).
 
   summarize.py RUNS_ROOT [--out DIR] [--align none] [--window 1.0]
+               [--map-odom-ref zero|first] [--no-crop]
   summarize.py --runs R1 R2 ... --out DIR
 
 RUNS_ROOT holds one directory per run (``<mode>_<NN>`` from
 ``scripts/run_experiment.sh``). The mode of a run is ``mode`` in its
 ``run.yaml``; without one, the directory name prefix before ``_<NN>``.
 
+Evaluation window: every series (GT, landmarks, map->odom) is cropped to
+[start of the first goal, end of the last goal] from the per-goal
+``start_sim_s`` / ``end_sim_s`` in ``result.yaml`` (``eval/crop_run.py``,
+same functions; full GT range + a note if absent). APE/RPE come from
+``evo_<align>/`` written by ``eval/run_evo.sh`` (which crops the same way;
+its ``eval_window.yaml`` is checked against this window). ``--no-crop``
+uses the whole recording and ``evo_<align>_full/`` (``run_evo.sh
+--no-crop``).
+
 Per run (missing inputs give empty cells and a note, not an error):
 
-* APE rmse / mean / max, RPE rmse - ``evo_<align>/{ape,rpe}.zip`` written
-  by ``eval/run_evo.sh`` (stats.json, same reader as aggregate.py)
+* APE rmse / mean / max, RPE rmse [m] - ``ape.zip`` / ``rpe.zip``
+* APE rotation rmse / max, RPE rotation rmse / max [deg] - ``ape_rot.zip``
+  / ``rpe_rot.zip`` (evo ``-r angle_deg``)
 * duration [s] - sum of the goals' ``duration_sim_s`` in ``result.yaml``;
-  fallback: time span of gt.tum
-* path length [m] - integrated xy distance of gt.tum
+  fallback: length of the window
+* path length [m] - integrated xy distance of the GT in the window;
+  total rotation [rad] - sum of |wrapped yaw increments| of the GT in the
+  window; mean speed [m/s] = path length / duration
 * goals succeeded / total - ``result.yaml``
-* detections - total over ``landmarks.csv``, per metre of GT path, and the
-  fraction of the GT time span in which at least one detection arrived in
-  the last ``--window`` seconds
-* map->odom (``map_odom.tum``) - largest step between consecutive samples
-  and largest correction, translation [m] and yaw [deg]; the correction is
-  taken w.r.t. the first sample (``--map-odom-ref first``, removes the
-  constant spawn offset) or the identity (``zero``)
+* detections - total over ``landmarks.csv`` rows in the window, per metre
+  of GT path, % of the window in which at least one detection arrived in
+  the last ``--window`` seconds, longest interval without a detection [s]
+* map->odom (``map_odom.tum``, window) - largest step between consecutive
+  samples and largest correction, translation [m] and yaw [deg]; the
+  correction is taken w.r.t. the identity (``--map-odom-ref zero``,
+  default: with init_from_gt, map->odom = identity means "no correction")
+  or the first sample in the window (``first``)
+* sanity flag - ``bad_db_init`` if the *first* map->odom sample of the
+  whole recording is farther than ``--init-tol-m`` (0.05 m) or
+  ``--init-tol-deg`` (2 deg) from the identity (localization started from
+  a stale DB pose), ``ok`` otherwise, empty without map_odom.tum. Flagged
+  runs stay in the statistics and are listed in summary.md.
 
 Per mode: mean, sample std (ddof=1), min and max over runs.
+Paired: runs are paired across modes by ``seed`` (run.yaml, else
+result.yaml; else the run index), and per pair the differences
+``<mode> - baseline`` of the main metrics are written.
 
 Outputs in --out (default RUNS_ROOT/summary): summary.csv (per run),
-summary_modes.csv (per mode), summary.md, summary_table.tex (booktabs).
+summary_modes.csv (per mode), summary_paired.csv (per seed), summary.md,
+summary_table.tex (booktabs, compact: rows = metrics, columns = modes).
 """
 
 from __future__ import annotations
@@ -45,6 +68,7 @@ from typing import Dict, List, Optional, Sequence, Tuple
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, '..', 'navigation', 'src', 'al_eval'))
+import crop_run as cw  # noqa: E402
 from aggregate import _alignment_of, _read_res  # noqa: E402
 from al_eval.recorder_helpers import read_landmarks_csv  # noqa: E402
 from al_eval.tum import quat_to_yaw, read_tum, wrap_angle  # noqa: E402
@@ -59,28 +83,55 @@ METRICS: List[Tuple[str, str, str, str, int]] = [
     ('ape_mean', 'APE mean', 'APE mean', 'm', 3),
     ('ape_max', 'APE max', 'APE max', 'm', 3),
     ('rpe_rmse', 'RPE RMSE', 'RPE RMSE', 'm', 3),
+    ('ape_rot_rmse', 'APE rot. RMSE', 'APE rot.\\ RMSE', 'deg', 2),
+    ('ape_rot_max', 'APE rot. max', 'APE rot.\\ max', 'deg', 2),
+    ('rpe_rot_rmse', 'RPE rot. RMSE', 'RPE rot.\\ RMSE', 'deg', 2),
+    ('rpe_rot_max', 'RPE rot. max', 'RPE rot.\\ max', 'deg', 2),
     ('duration_s', 'duration', 'Time', 's', 1),
-    ('path_length_m', 'path length (GT)', 'Path length (GT)', 'm', 2),
+    ('path_length_m', 'path length (GT)', 'Path length', 'm', 2),
+    ('rot_total_rad', 'total rotation (GT)', 'Total rotation', 'rad', 2),
+    ('mean_speed_mps', 'mean speed (GT path / duration)', 'Mean speed',
+     'm/s', 3),
     ('goals_succeeded', 'goals succeeded', 'Goals reached', '', 2),
     ('det_total', 'detections', 'Detections', '', 0),
-    ('det_per_m', 'detections per m', 'Detections per m', '1/m', 1),
+    ('det_per_m', 'detections per m', 'Detections per m', '', 1),
     ('det_coverage_pct', 'time with a detection in the last window',
      'Time with detection', '%', 1),
+    ('det_max_gap_s', 'longest gap without detection',
+     'Longest detection gap', 's', 1),
     ('mo_max_step_m', 'map->odom max step', r'map$\to$odom max step', 'm', 3),
     ('mo_max_step_yaw_deg', 'map->odom max yaw step',
      r'map$\to$odom max yaw step', 'deg', 2),
     ('mo_max_corr_m', 'map->odom max |correction|',
-     r'max $|$map$\to$odom corr.$|$', 'm', 3),
+     r'Max map$\to$odom corr.', 'm', 3),
     ('mo_max_corr_yaw_deg', 'map->odom max |yaw correction|',
-     r'max $|$map$\to$odom yaw corr.$|$', 'deg', 2),
+     r'Max map$\to$odom yaw corr.', 'deg', 2),
+    ('mo_init_m', 'map->odom first sample |t|', r'map$\to$odom init',
+     'm', 3),
+    ('mo_init_yaw_deg', 'map->odom first sample |yaw|',
+     r'map$\to$odom init yaw', 'deg', 2),
 ]
 METRIC_KEYS = [m[0] for m in METRICS]
-RUN_COLS = (['run', 'mode', 'mode_source'] + METRIC_KEYS
+RUN_COLS = (['run', 'mode', 'mode_source', 'seed', 'sanity_flag']
+            + METRIC_KEYS
             + ['goals_total', 'duration_source', 'det_msgs', 'mo_n', 'align',
+               'window_source', 'window_t0', 'window_t1', 'window_s',
                'notes'])
 # Metrics for which "relative to baseline" is printed in summary.md.
-REL_KEYS = ('ape_rmse', 'ape_max', 'rpe_rmse', 'duration_s', 'det_per_m',
-            'det_coverage_pct', 'mo_max_corr_m')
+REL_KEYS = ('ape_rmse', 'ape_max', 'rpe_rmse', 'ape_rot_rmse', 'duration_s',
+            'rot_total_rad', 'det_per_m', 'det_coverage_pct',
+            'mo_max_corr_m')
+# Metrics of the paired (per seed) differences.
+PAIRED_KEYS = ('ape_rmse', 'ape_max', 'rpe_rmse', 'ape_rot_rmse',
+               'det_per_m', 'det_coverage_pct', 'det_max_gap_s',
+               'mo_max_corr_m', 'duration_s', 'path_length_m',
+               'rot_total_rad')
+# Rows of summary_table.tex (report Table 1, T-012b): fixed set.
+TEX_KEYS = ('ape_rmse', 'ape_max', 'det_per_m', 'mo_max_corr_m',
+            'duration_s', 'path_length_m', 'goals_succeeded')
+INIT_TOL_M = 0.05
+INIT_TOL_DEG = 2.0
+FLAG_BAD_INIT = 'bad_db_init'
 
 
 # --------------------------------------------------------------- run discovery
@@ -165,9 +216,22 @@ def coverage_fraction(stamps: Sequence[float], t0: float, t1: float,
     return covered / (t1 - t0)
 
 
+def max_gap(stamps: Sequence[float], t0: float, t1: float) -> float:
+    """Longest interval of [t0, t1] without a stamp (edges included)."""
+    if t1 <= t0:
+        return NAN
+    pts = [t0] + sorted(s for s in stamps if t0 <= s <= t1) + [t1]
+    return max(b - a for a, b in zip(pts, pts[1:]))
+
+
+def rotation_total(yaws: Sequence[float]) -> float:
+    """Sum of |wrapped yaw increments| [rad] (0 for < 2 samples)."""
+    return sum(abs(wrap_angle(b - a)) for a, b in zip(yaws, yaws[1:]))
+
+
 def detection_stats(rows: Sequence[Tuple[float, int, tuple]], t0: float,
                     t1: float, path_m: float, window: float = 1.0) -> Dict:
-    """Totals of landmarks.csv rows ``(t, n, ids)``."""
+    """Totals of landmarks.csv rows ``(t, n, ids)`` over [t0, t1]."""
     total = sum(int(r[1]) for r in rows)
     stamps = [r[0] for r in rows if r[1] >= 1]
     return {
@@ -175,16 +239,17 @@ def detection_stats(rows: Sequence[Tuple[float, int, tuple]], t0: float,
         'det_msgs': len(rows),
         'det_per_m': total / path_m if path_m > 0 else NAN,
         'det_coverage_pct': 100.0 * coverage_fraction(stamps, t0, t1, window),
+        'det_max_gap_s': max_gap(stamps, t0, t1),
     }
 
 
 def map_odom_stats(poses: Sequence[Tuple[float, float, float]],
-                   reference: str = 'first') -> Dict:
+                   reference: str = 'zero') -> Dict:
     """Step / correction extremes of a map->odom sequence ``(x, y, yaw)``.
 
     step_i = |p_i - p_{i-1}| (xy) and |wrap(yaw_i - yaw_{i-1})|;
     correction_i = |p_i - p_ref| and |wrap(yaw_i - yaw_ref)|, with p_ref the
-    first sample (``'first'``) or the identity (``'zero'``). These are
+    first sample (``'first'``) or the identity (``'zero'``, default). These are
     properties of the transform itself (not the jump of the robot pose,
     which also depends on odom->base_link).
     """
@@ -210,6 +275,23 @@ def map_odom_stats(poses: Sequence[Tuple[float, float, float]],
         out['mo_max_step_m'] = 0.0
         out['mo_max_step_yaw_deg'] = 0.0
     return out
+
+
+def init_check(pose: Optional[Tuple[float, float, float]],
+               tol_m: float = INIT_TOL_M,
+               tol_deg: float = INIT_TOL_DEG) -> Dict:
+    """Sanity check of the first map->odom sample ``(x, y, yaw)``.
+
+    With ``init_from_gt`` map->odom must start at the identity; a larger
+    offset means localization started from a stale DB pose.
+    """
+    if pose is None:
+        return {'mo_init_m': NAN, 'mo_init_yaw_deg': NAN, 'sanity_flag': ''}
+    d = math.hypot(pose[0], pose[1])
+    a = math.degrees(abs(wrap_angle(pose[2])))
+    bad = d > tol_m or a > tol_deg
+    return {'mo_init_m': d, 'mo_init_yaw_deg': a,
+            'sanity_flag': FLAG_BAD_INIT if bad else 'ok'}
 
 
 def result_stats(result: Dict) -> Dict:
@@ -239,50 +321,122 @@ def stats_over_runs(values: Sequence[float]) -> Dict[str, float]:
 
 
 # --------------------------------------------------------------- one run
-def evo_stats(run_dir: str, align: str) -> Optional[Dict]:
-    d = os.path.join(run_dir, 'evo_' + align)
+def evo_dir(run_dir: str, align: str, crop: bool = True) -> str:
+    """``evo_<align>`` (cropped, default) or ``evo_<align>_full``."""
+    return os.path.join(run_dir, 'evo_%s%s' % (align, '' if crop else '_full'))
+
+
+def evo_stats(d: str) -> Tuple[Optional[Dict], List[str]]:
+    """(stats or None, notes) from the evo result dir ``d``.
+
+    Translation zips are required; the rotation zips are optional (results
+    of the run_evo.sh before T-011c have none).
+    """
     ape_p, rpe_p = os.path.join(d, 'ape.zip'), os.path.join(d, 'rpe.zip')
+    name = os.path.basename(d)
     if not (os.path.isfile(ape_p) and os.path.isfile(rpe_p)):
-        return None
+        return None, ['no %s/ape.zip+rpe.zip' % name]
     ape, rpe = _read_res(ape_p), _read_res(rpe_p)
-    return {'ape_rmse': ape['stats']['rmse'], 'ape_mean': ape['stats']['mean'],
-            'ape_max': ape['stats']['max'], 'rpe_rmse': rpe['stats']['rmse'],
-            'align': _alignment_of(ape['info'].get('title', ''))}
+    out = {'ape_rmse': ape['stats']['rmse'], 'ape_mean': ape['stats']['mean'],
+           'ape_max': ape['stats']['max'], 'rpe_rmse': rpe['stats']['rmse'],
+           'align': _alignment_of(ape['info'].get('title', ''))}
+    notes = []
+    for kind in ('ape', 'rpe'):
+        p = os.path.join(d, kind + '_rot.zip')
+        if os.path.isfile(p):
+            st = _read_res(p)['stats']
+            out[kind + '_rot_rmse'] = st['rmse']
+            out[kind + '_rot_max'] = st['max']
+        else:
+            notes.append('no %s/%s_rot.zip' % (name, kind))
+    return out, notes
+
+
+def run_seed(run_dir: str, result: Optional[Dict]):
+    """``seed`` from run.yaml, else from result.yaml; None if neither."""
+    p = os.path.join(run_dir, 'run.yaml')
+    if os.path.isfile(p):
+        try:
+            data = _load_yaml(p) or {}
+        except Exception:  # noqa: BLE001
+            data = {}
+        if isinstance(data, dict) and data.get('seed') is not None:
+            return data['seed']
+    if isinstance(result, dict) and result.get('seed') is not None:
+        return result['seed']
+    return None
+
+
+def _check_evo_window(d: str, t0: float, t1: float, crop: bool) -> List[str]:
+    """Notes if the evo results were not computed on the same window."""
+    p = os.path.join(d, cw.WINDOW_FILE)
+    if not crop or not os.path.isdir(d):
+        return []
+    if not os.path.isfile(p):
+        return ['%s has no %s (evo not run on the cropped window? rerun '
+                'eval/run_evo.sh)' % (os.path.basename(d), cw.WINDOW_FILE)]
+    w = _load_yaml(p) or {}
+    try:
+        same = (abs(float(w['t0']) - t0) < 1e-6
+                and abs(float(w['t1']) - t1) < 1e-6)
+    except (KeyError, TypeError, ValueError):
+        same = False
+    if not same:
+        return ['%s window [%s, %s] != [%.3f, %.3f]' % (
+            os.path.basename(d), w.get('t0'), w.get('t1'), t0, t1)]
+    return []
 
 
 def load_run(run_dir: str, align: str = 'none', window: float = 1.0,
-             map_odom_ref: str = 'first') -> Dict:
+             map_odom_ref: str = 'zero', crop: bool = True,
+             init_tol_m: float = INIT_TOL_M,
+             init_tol_deg: float = INIT_TOL_DEG) -> Dict:
     """All per-run metrics; missing inputs -> NaN + a note."""
     name = os.path.basename(os.path.normpath(run_dir))
     mode, src = run_mode(run_dir)
     row: Dict = {k: NAN for k in METRIC_KEYS}
-    row.update({'run': name, 'mode': mode, 'mode_source': src,
-                'goals_total': '', 'duration_source': '', 'det_msgs': '',
-                'mo_n': '', 'align': '', 'run_dir': run_dir})
+    row.update({'run': name, 'mode': mode, 'mode_source': src, 'seed': '',
+                'sanity_flag': '', 'goals_total': '', 'duration_source': '',
+                'det_msgs': '', 'mo_n': '', 'align': '', 'window_source': '',
+                'window_t0': NAN, 'window_t1': NAN, 'window_s': NAN,
+                'run_dir': run_dir})
     notes = []
     name_mode = mode_from_name(name)
     if src == 'run.yaml' and name_mode and name_mode != mode:
         notes.append('run.yaml mode %r != dir name %r' % (mode, name_mode))
 
-    ev = evo_stats(run_dir, align)
-    if ev is None:
-        notes.append('no evo_%s/ape.zip+rpe.zip' % align)
-    else:
-        row.update(ev)
-
     gt_path = os.path.join(run_dir, 'gt.tum')
-    t0 = t1 = None
-    if os.path.isfile(gt_path):
-        gt = read_tum(gt_path)
-        if gt:
-            t0, t1 = gt[0][0], gt[-1][0]
-            row['path_length_m'] = path_length_xy([(r[1], r[2]) for r in gt])
-    else:
+    gt = read_tum(gt_path) if os.path.isfile(gt_path) else []
+    if not os.path.isfile(gt_path):
         notes.append('no gt.tum')
+    t0 = t1 = None
+    if gt:
+        if crop:
+            t0, t1, wsrc, wnote = cw.resolve_window(run_dir, gt)
+            if wnote:
+                notes.append(wnote)
+        else:
+            t0, t1, wsrc = gt[0][0], gt[-1][0], 'off (whole recording)'
+        row.update({'window_source': wsrc, 'window_t0': t0,
+                    'window_t1': t1, 'window_s': t1 - t0})
+        gw = cw.crop_rows(gt, t0, t1)
+        row['path_length_m'] = path_length_xy([(r[1], r[2]) for r in gw])
+        row['rot_total_rad'] = rotation_total(
+            [quat_to_yaw(*r[4:8]) for r in gw])
+
+    d = evo_dir(run_dir, align, crop)
+    ev, ev_notes = evo_stats(d)
+    notes += ev_notes
+    if ev is not None:
+        row.update(ev)
+        if t0 is not None:
+            notes += _check_evo_window(d, t0, t1, crop)
 
     res_path = os.path.join(run_dir, 'result.yaml')
+    result = None
     if os.path.isfile(res_path):
-        rs = result_stats(_load_yaml(res_path) or {})
+        result = _load_yaml(res_path) or {}
+        rs = result_stats(result)
         row['goals_succeeded'] = rs['goals_succeeded']
         row['goals_total'] = rs['goals_total']
         if not math.isnan(rs['duration_s']):
@@ -292,18 +446,34 @@ def load_run(run_dir: str, align: str = 'none', window: float = 1.0,
         notes.append('no result.yaml')
     if math.isnan(row['duration_s']) and t0 is not None:
         row['duration_s'] = t1 - t0
-        row['duration_source'] = 'gt.tum span'
+        row['duration_source'] = ('eval window'
+                                  if row['window_source'] == cw.SRC_RESULT
+                                  else 'gt.tum span')
+    if row['duration_s'] > 0 and not math.isnan(row['path_length_m']):
+        row['mean_speed_mps'] = row['path_length_m'] / row['duration_s']
+    seed = run_seed(run_dir, result)
+    row['seed'] = '' if seed is None else seed
 
     lm_path = os.path.join(run_dir, 'landmarks.csv')
     if os.path.isfile(lm_path) and t0 is not None:
-        row.update(detection_stats(read_landmarks_csv(lm_path), t0, t1,
-                                   row['path_length_m'], window))
+        lm = cw.crop_rows(read_landmarks_csv(lm_path), t0, t1)
+        row.update(detection_stats(lm, t0, t1, row['path_length_m'], window))
     elif not os.path.isfile(lm_path):
         notes.append('no landmarks.csv')
 
     mo_path = os.path.join(run_dir, 'map_odom.tum')
     if os.path.isfile(mo_path):
-        poses = [(r[1], r[2], quat_to_yaw(*r[4:8])) for r in read_tum(mo_path)]
+        mo = read_tum(mo_path)
+        poses = [(r[1], r[2], quat_to_yaw(*r[4:8])) for r in mo]
+        row.update(init_check(poses[0] if poses else None, init_tol_m,
+                              init_tol_deg))
+        if row['sanity_flag'] == FLAG_BAD_INIT:
+            notes.append('first map->odom sample %.3f m / %.1f deg from '
+                         'identity (stale DB init?)'
+                         % (row['mo_init_m'], row['mo_init_yaw_deg']))
+        if t0 is not None:
+            poses = [(r[1], r[2], quat_to_yaw(*r[4:8]))
+                     for r in cw.crop_rows(mo, t0, t1)]
         row.update(map_odom_stats(poses, map_odom_ref))
     else:
         notes.append('no map_odom.tum')
@@ -331,6 +501,87 @@ def summarize_modes(rows: Sequence[Dict]) -> 'OrderedDict[str, Dict]':
     return out
 
 
+# --------------------------------------------------------------- paired
+def pair_key(row: Dict):
+    """Seed if known, else ``'run<NN>'`` from the dir name."""
+    if row.get('seed') not in ('', None):
+        return row['seed']
+    m = _RUN_DIR_RE.match(row['run'])
+    return 'run%s' % m.group(2) if m else row['run']
+
+
+def paired_rows(rows: Sequence[Dict], keys: Sequence[str] = PAIRED_KEYS,
+                base: str = 'baseline') -> Tuple[List[Dict], List[str]]:
+    """Per pair key: runs, baseline values and ``<mode> - baseline``.
+
+    Returns (rows, other_modes). A pair without a baseline run gets empty
+    differences; if a mode has two runs with the same key the first (by
+    name) is used and a note is added.
+    """
+    groups = group_by_mode(rows)
+    others = [m for m in groups if m != base]
+    by: 'OrderedDict' = OrderedDict()
+    notes: Dict = {}
+    for mode, rs in groups.items():
+        for r in rs:
+            k = pair_key(r)
+            slot = by.setdefault(k, {})
+            if mode in slot:
+                notes.setdefault(k, []).append(
+                    'duplicate %s run %s ignored' % (mode, r['run']))
+                continue
+            slot[mode] = r
+    out = []
+    for k in sorted(by, key=lambda x: (str(type(x)), x)):
+        slot = by[k]
+        b = slot.get(base)
+        pr: Dict = {'pair': k}
+        for mode in [base] + others:
+            pr['run_' + mode] = slot[mode]['run'] if mode in slot else ''
+        flagged = [r['run'] for r in slot.values()
+                   if r.get('sanity_flag') == FLAG_BAD_INIT]
+        pr['flagged'] = ';'.join(sorted(flagged))
+        pr['notes'] = '; '.join(notes.get(k, []))
+        for key in keys:
+            bv = b[key] if b is not None else NAN
+            pr['%s_%s' % (key, base)] = bv
+            for mode in others:
+                v = slot[mode][key] if mode in slot else NAN
+                pr['d_%s_%s' % (mode, key)] = (
+                    NAN if _isnan(v) or _isnan(bv) else v - bv)
+        out.append(pr)
+    return out, others
+
+
+def paired_summary(prs: Sequence[Dict], others: Sequence[str],
+                   key: str, mode: str) -> Dict:
+    """Mean difference and sign consistency over pairs (finite only)."""
+    ds = [p['d_%s_%s' % (mode, key)] for p in prs]
+    ds = [d for d in ds if not _isnan(d)]
+    if not ds:
+        return {'n': 0, 'mean': NAN, 'consistent': 0}
+    mean = statistics.fmean(ds)
+    sign = (mean > 0) - (mean < 0)
+    return {'n': len(ds), 'mean': mean,
+            'consistent': sum(1 for d in ds if (d > 0) - (d < 0) == sign)}
+
+
+def write_paired_csv(path: str, prs: Sequence[Dict], others: Sequence[str],
+                     keys: Sequence[str] = PAIRED_KEYS,
+                     base: str = 'baseline') -> None:
+    cols = (['pair'] + ['run_' + m for m in [base] + list(others)]
+            + ['flagged', 'notes'])
+    for key in keys:
+        cols.append('%s_%s' % (key, base))
+        cols += ['d_%s_%s' % (m, key) for m in others]
+    with open(path, 'w', newline='') as f:
+        w = csv.DictWriter(f, fieldnames=cols, extrasaction='ignore')
+        w.writeheader()
+        for p in prs:
+            w.writerow({c: (_fmt(p[c], 6) if isinstance(p[c], float)
+                            else p[c]) for c in cols})
+
+
 # --------------------------------------------------------------- writers
 def _isnan(v) -> bool:
     return v is None or (isinstance(v, float) and math.isnan(v))
@@ -349,10 +600,8 @@ def write_run_csv(path: str, rows: Sequence[Dict]) -> None:
         w = csv.DictWriter(f, fieldnames=RUN_COLS, extrasaction='ignore')
         w.writeheader()
         for r in rows:
-            w.writerow({k: ('%.6f' % r[k] if k in METRIC_KEYS
-                            and not _isnan(r[k]) else
-                            ('' if k in METRIC_KEYS else r[k]))
-                        for k in RUN_COLS})
+            w.writerow({k: (_fmt(r[k], 6) if isinstance(r[k], float)
+                            else r[k]) for k in RUN_COLS})
 
 
 def write_mode_csv(path: str, modes: Dict) -> None:
@@ -374,15 +623,33 @@ def _label(m) -> str:
 
 
 def render_md(rows: Sequence[Dict], modes: Dict, align_labels: Sequence[str],
-              window: float, map_odom_ref: str) -> str:
+              window: float, map_odom_ref: str,
+              paired: Optional[Tuple[List[Dict], List[str]]] = None) -> str:
     names = list(modes)
+    wsrc = sorted({r['window_source'] for r in rows if r['window_source']})
+    ref_txt = ('identity (zero)' if map_odom_ref == 'zero'
+               else 'first sample in the window')
     lines = ['# Experiment summary', '',
              '- alignment: **%s**' % (', '.join(align_labels) or 'n/a'),
+             '- evaluation window: **%s**' % (', '.join(wsrc) or 'n/a'),
              '- runs per mode: %s' % ', '.join(
                  '%s %d' % (m, modes[m]['_n_runs']) for m in names),
              '- cells: mean ± sample std (ddof=1) over runs; [min, max] below',
              '- detection coverage window: %g s; map->odom correction '
-             'reference: %s sample' % (window, map_odom_ref), '']
+             'reference: %s' % (window, ref_txt), '']
+    flagged = [r for r in rows if r['sanity_flag'] == FLAG_BAD_INIT]
+    if flagged:
+        lines.append('> **Sanity flag `%s`** (first map->odom sample not at '
+                     'the identity; kept in the statistics): %s'
+                     % (FLAG_BAD_INIT, ', '.join(
+                         '%s (%.3f m, %.1f deg)' % (
+                             r['run'], r['mo_init_m'], r['mo_init_yaw_deg'])
+                         for r in flagged)))
+        lines.append('')
+    if any(r['window_source'] == cw.SRC_FULL for r in rows):
+        lines.append('> Some runs have no goal window in result.yaml: they '
+                     'are evaluated over the whole recording (see notes).')
+        lines.append('')
     if any('not aligned' in a for a in align_labels):
         lines.append('> Without alignment APE includes any constant offset '
                      'between the GT and map frames.')
@@ -424,15 +691,43 @@ def render_md(rows: Sequence[Dict], modes: Dict, align_labels: Sequence[str],
         if min(modes[m]['_n_runs'] for m in names) < 5:
             lines.append('- n < 5 runs per mode: differences are indicative, '
                          'not statistically established.')
+    if paired is not None and paired[0] and paired[1]:
+        prs, others = paired
+        lines += ['', '## Paired by seed (<mode> - baseline)', '',
+                  'Pairs: %s. "k/n": pairs whose difference has the sign of '
+                  'the mean difference. Baseline spread = max - min over '
+                  'baseline runs.' % ', '.join(str(p['pair']) for p in prs),
+                  '']
+        hdr2 = (['metric'] + ['Δ %s mean (k/n)' % m for m in others]
+                + ['baseline spread'])
+        lines += ['| ' + ' | '.join(hdr2) + ' |',
+                  '|' + '|'.join(['---'] * len(hdr2)) + '|']
+        meta = {m[0]: m for m in METRICS}
+        for key in PAIRED_KEYS:
+            m = meta[key]
+            cells = []
+            for mode in others:
+                ps = paired_summary(prs, others, key, mode)
+                cells.append('%s (%d/%d)' % (_md(ps['mean'], m[4] + 1),
+                                             ps['consistent'], ps['n'])
+                             if ps['n'] else '—')
+            b = modes.get('baseline', {}).get(key)
+            spread = (b['max'] - b['min']) if b and b['n'] else NAN
+            lines.append('| %s | %s | %s |' % (_label(m), ' | '.join(cells),
+                                               _md(spread, m[4] + 1)))
+        lines.append('')
+        lines.append('Same seed = same start, goals and noise stream, not '
+                     'the same noise realization once the paths differ.')
     lines += ['', '## Per run', '']
-    cols = ['run', 'mode'] + METRIC_KEYS + ['notes']
+    cols = ['run', 'mode', 'seed', 'sanity_flag'] + METRIC_KEYS + ['notes']
     lines += ['| ' + ' | '.join(cols) + ' |',
               '|' + '|'.join(['---'] * len(cols)) + '|']
     nds = {m[0]: m[4] for m in METRICS}
     for r in rows:
         lines.append('| ' + ' | '.join(
-            [r['run'], r['mode']]
-            + [_md(r[k], nds[k]) for k in METRIC_KEYS] + [r['notes']]) + ' |')
+            [r['run'], r['mode'], str(r['seed']), r['sanity_flag']]
+            + [_md(r[k], nds[k]) for k in METRIC_KEYS]
+            + [r['notes'].replace('|', '\\|')]) + ' |')
     return '\n'.join(lines) + '\n'
 
 
@@ -441,52 +736,73 @@ def _tex_escape(s: str) -> str:
             .replace('%', r'\%').replace('&', r'\&').replace('#', r'\#'))
 
 
-# Compact row set for the 2-page PDF.
-TEX_KEYS = ('ape_rmse', 'ape_max', 'rpe_rmse', 'duration_s', 'path_length_m',
-            'det_per_m', 'det_coverage_pct', 'mo_max_step_m', 'mo_max_corr_m',
-            'mo_max_corr_yaw_deg')
+# Row labels of summary_table.tex (TEX_KEYS); units in brackets.
+TEX_LABELS = {
+    'ape_rmse': 'APE RMSE [m]',
+    'ape_max': 'APE max [m]',
+    'det_per_m': 'Detections per m',
+    'mo_max_corr_m': r'Max map$\to$odom corr.\ [m]',
+    'duration_s': 'Time [s]',
+    'path_length_m': 'Path length [m]',
+    'goals_succeeded': 'Goals reached',
+}
+TEX_DECIMALS = {'ape_rmse': 3, 'ape_max': 3, 'det_per_m': 1,
+                'mo_max_corr_m': 3, 'duration_s': 1, 'path_length_m': 1,
+                'goals_succeeded': 1}
 
 
-def render_tex(modes: Dict, align_labels: Sequence[str],
-               window: float) -> str:
+def render_tex(modes: Dict, align_labels: Sequence[str], window: float,
+               window_sources: Sequence[str] = (),
+               flagged: Sequence[str] = ()) -> str:
+    """booktabs tabular, rows = TEX_KEYS, columns = modes (mean ± std).
+
+    ``Goals reached`` is the sum over runs (``k/N``); everything else is
+    mean ± sample std over runs.
+    """
     names = list(modes)
-    units = {'%': r'\%', 'deg': r'$^\circ$', '1/m': r'm$^{-1}$'}
     out = ['% Generated by eval/summarize.py. Needs \\usepackage{booktabs}.',
-           '%% alignment: %s; mean $\\pm$ sample std over runs; '
-           'coverage window %g s' % (', '.join(align_labels) or 'n/a',
-                                     window),
-           r'\begin{tabular}{@{}l' + 'c' * len(names) + '@{}}',
-           r'\toprule',
-           'Metric & ' + ' & '.join(
-               r'%s ($n{=}%d$)' % (_tex_escape(m), modes[m]['_n_runs'])
-               for m in names) + r' \\',
-           r'\midrule']
-    meta = {m[0]: m for m in METRICS}
+           '%% alignment: %s; window: %s; mean $\\pm$ sample std over runs; '
+           'goals = sum over runs' % (', '.join(align_labels) or 'n/a',
+                                      ', '.join(window_sources) or 'n/a'),
+           '%% detection coverage window %g s (coverage not in this table)'
+           % window]
+    if flagged:
+        out.append('%% sanity flag %s (kept in the means): %s'
+                   % (FLAG_BAD_INIT, ', '.join(flagged)))
+    out += [r'\setlength{\tabcolsep}{3pt}',
+            r'\begin{tabular}{@{}l' + 'c' * len(names) + '@{}}',
+            r'\toprule',
+            'Metric & ' + ' & '.join(
+                r'%s ($n{=}%d$)' % (_tex_escape(m), modes[m]['_n_runs'])
+                for m in names) + r' \\',
+            r'\midrule']
     for k in TEX_KEYS:
-        _, _, label, unit, nd = meta[k]
-        u = units.get(unit, unit)
-        cells = []
-        for mode in names:
-            s = modes[mode][k]
-            if _isnan(s['mean']):
-                cells.append('--')
-            elif _isnan(s['std']):
-                cells.append('$%.*f$' % (nd, s['mean']))
-            else:
-                cells.append(r'$%.*f \pm %.*f$'
-                             % (nd, s['mean'], nd, s['std']))
-        unit_txt = ' [%s]' % u if u else ''
-        out.append('%s%s & %s \\\\' % (label, unit_txt, ' & '.join(cells)))
-    out.append('Goals reached & ' + ' & '.join(
-        '%d/%d' % modes[m]['_goals'] for m in names) + r' \\')
+        if k == 'goals_succeeded':
+            cells = ['%d/%d' % modes[m]['_goals'] for m in names]
+        else:
+            nd = TEX_DECIMALS[k]
+            cells = []
+            for mode in names:
+                s = modes[mode][k]
+                if _isnan(s['mean']):
+                    cells.append('--')
+                elif _isnan(s['std']):
+                    cells.append('$%.*f$' % (nd, s['mean']))
+                else:
+                    cells.append(r'$%.*f \pm %.*f$'
+                                 % (nd, s['mean'], nd, s['std']))
+        out.append('%s & %s \\\\' % (TEX_LABELS[k], ' & '.join(cells)))
     out += [r'\bottomrule', r'\end{tabular}', '']
     return '\n'.join(out)
 
 
 # --------------------------------------------------------------- main
 def collect(run_dirs: Sequence[str], align: str, window: float,
-            map_odom_ref: str) -> List[Dict]:
-    return [load_run(d, align, window, map_odom_ref) for d in run_dirs]
+            map_odom_ref: str = 'zero', crop: bool = True,
+            init_tol_m: float = INIT_TOL_M,
+            init_tol_deg: float = INIT_TOL_DEG) -> List[Dict]:
+    return [load_run(d, align, window, map_odom_ref, crop, init_tol_m,
+                     init_tol_deg) for d in run_dirs]
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
@@ -499,8 +815,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                     help='which evo_<align>/ subdir to read (default none)')
     ap.add_argument('--window', type=float, default=1.0,
                     help='detection coverage window [s] (default 1)')
-    ap.add_argument('--map-odom-ref', choices=('first', 'zero'),
-                    default='first')
+    ap.add_argument('--map-odom-ref', choices=('zero', 'first'),
+                    default='zero',
+                    help='map->odom correction w.r.t. the identity (zero, '
+                         'default) or the first sample in the window')
+    ap.add_argument('--no-crop', action='store_true',
+                    help='whole recording; reads evo_<align>_full/')
+    ap.add_argument('--init-tol-m', type=float, default=INIT_TOL_M,
+                    help='sanity flag: first map->odom |t| [m] (0.05)')
+    ap.add_argument('--init-tol-deg', type=float, default=INIT_TOL_DEG,
+                    help='sanity flag: first map->odom |yaw| [deg] (2)')
     ap.add_argument('--allow_mixed_alignment', action='store_true')
     a = ap.parse_args(argv)
 
@@ -514,7 +838,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if a.window <= 0:
         ap.error('--window must be > 0')
 
-    rows = collect(run_dirs, a.align, a.window, a.map_odom_ref)
+    rows = collect(run_dirs, a.align, a.window, a.map_odom_ref,
+                   not a.no_crop, a.init_tol_m, a.init_tol_deg)
     aligns = sorted({r['align'] for r in rows if r['align']})
     if len(aligns) > 1 and not a.allow_mixed_alignment:
         print('ERROR: runs use different alignments: %s' % aligns,
@@ -525,18 +850,22 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             print('WARNING: %s: %s' % (r['run'], r['notes']), file=sys.stderr)
     rows.sort(key=lambda r: (mode_sort_key(r['mode']), r['run']))
     modes = summarize_modes(rows)
+    paired = paired_rows(rows)
+    wsrc = sorted({r['window_source'] for r in rows if r['window_source']})
+    flagged = [r['run'] for r in rows if r['sanity_flag'] == FLAG_BAD_INIT]
 
     os.makedirs(out, exist_ok=True)
     paths = [os.path.join(out, n) for n in (
-        'summary.csv', 'summary_modes.csv', 'summary.md',
-        'summary_table.tex')]
+        'summary.csv', 'summary_modes.csv', 'summary_paired.csv',
+        'summary.md', 'summary_table.tex')]
     write_run_csv(paths[0], rows)
     write_mode_csv(paths[1], modes)
-    md = render_md(rows, modes, aligns, a.window, a.map_odom_ref)
-    with open(paths[2], 'w') as f:
-        f.write(md)
+    write_paired_csv(paths[2], paired[0], paired[1])
+    md = render_md(rows, modes, aligns, a.window, a.map_odom_ref, paired)
     with open(paths[3], 'w') as f:
-        f.write(render_tex(modes, aligns, a.window))
+        f.write(md)
+    with open(paths[4], 'w') as f:
+        f.write(render_tex(modes, aligns, a.window, wsrc, flagged))
     print(md)
     print('wrote ' + ', '.join(paths))
     return 0
