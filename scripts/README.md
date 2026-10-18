@@ -88,7 +88,7 @@ Placeholders in launch commands: `@SEED@`, `@RUN_NAME@`, `@RUNS_DIR@`,
 | file | from |
 |---|---|
 | `gt.tum`, `est.tum`, `meta.yaml` | `traj_recorder` |
-| `result.yaml` | `scenario_runner`: per-goal status (`succeeded`, `aborted`, `canceled`, `timeout`, `rejected`, `error`, `skipped`), wall/sim duration, GT path length, final xy/yaw error of the estimated pose, Nav2 recoveries; summary |
+| `result.yaml` | `scenario_runner`: per-goal status (`succeeded`, `aborted`, `canceled`, `timeout`, `rejected`, `error`, `skipped`), wall/sim duration, sim-time start/end stamps (`start_sim_s`/`end_sim_s`, the evaluation window of `eval/crop_run.py`), GT path length, final xy/yaw error of the estimated pose, Nav2 recoveries; summary |
 | `scenario.yaml` | copy of the scenario used |
 | `run.yaml` | mode, seed, scenario name/file, git commit (+ dirty flag), start/end wall time, `runner_exit_code`, error, resolved launch commands |
 | `logs/*.log`, `logs/gazebo/*.log` | output of every stack and of `scenario_runner` |

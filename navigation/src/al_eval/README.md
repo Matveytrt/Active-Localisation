@@ -60,6 +60,35 @@ x' = ox + cos(oyaw)·x − sin(oyaw)·y;  y' = oy + sin(oyaw)·x + cos(oyaw)·y;
 положить в каталог прогона как `gt.tum` (или `run_evo.sh --gt <имя>`).
 Внимание: оффсет к такому файлу узел не применяет.
 
+## Secondary recordings: landmarks.csv, map_odom.tum (T-011a) [unverified]
+
+Both are on by default and can be switched off per run.
+
+| file | source | rate |
+|---|---|---|
+| `landmarks.csv` | `landmarks_topic` (`/landmark_detections`, `rtabmap_msgs/LandmarkDetections` from `tf_to_fiducial`) | every message (`tf_to_fiducial` publishes only non-empty batches, ≤ 10 Hz) |
+| `map_odom.tum` | TF `map_frame -> odom_frame` (`map -> odom`, the RTAB-Map correction) | timer `rate_hz`, stamp of the transform, repeated stamps skipped |
+
+`landmarks.csv` columns: `stamp,n_detections,ids` (ids `;`-separated, in
+message order). Stamp: the array header stamp if non-zero, else the newest
+per-landmark header stamp (`tf_to_fiducial` leaves the array header empty),
+else the receive time; `meta.yaml: landmark_stamp_sources` counts which one
+was used.
+
+Parameters / launch arguments: `record_landmarks` (true), `landmarks_topic`,
+`record_map_odom` (true), `odom_frame` (`odom`). `rtabmap_msgs` is imported
+lazily; if it is not available, the landmark recording is disabled with a
+warning and the reason goes to `meta.yaml: secondary_disabled`. New
+`meta.yaml` counters: `map_odom_written`, `map_odom_skipped_*`,
+`landmark_msgs_written`, `landmark_detections_total`; plus
+`first_map_odom_error`. With `overwrite:=false` the node also refuses a run
+dir that already has `landmarks.csv` / `map_odom.tum`.
+
+ENG to verify on the testbed: the subscription receives messages
+(QoS RELIABLE, depth 100), the stamps are sim time, map->odom is available
+and advances at the expected rate.
+Summary and plots: `eval/README.md` §6.
+
 ## Тесты
 
 ```bash

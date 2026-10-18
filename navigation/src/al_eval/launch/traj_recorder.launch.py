@@ -30,6 +30,11 @@ def generate_launch_description():
         DeclareLaunchArgument('gt_offset_y', default_value='0.0'),
         DeclareLaunchArgument('gt_offset_yaw', default_value='0.0'),
         DeclareLaunchArgument('overwrite', default_value='false'),
+        DeclareLaunchArgument('record_landmarks', default_value='true'),
+        DeclareLaunchArgument('landmarks_topic',
+                              default_value='/landmark_detections'),
+        DeclareLaunchArgument('record_map_odom', default_value='true'),
+        DeclareLaunchArgument('odom_frame', default_value='odom'),
     ]
 
     def lc(name, typ):
@@ -54,6 +59,10 @@ def generate_launch_description():
                 'gt_offset_y': lc('gt_offset_y', float),
                 'gt_offset_yaw': lc('gt_offset_yaw', float),
                 'overwrite': lc('overwrite', bool),
+                'record_landmarks': lc('record_landmarks', bool),
+                'landmarks_topic': lc('landmarks_topic', str),
+                'record_map_odom': lc('record_map_odom', bool),
+                'odom_frame': lc('odom_frame', str),
             },
         ],
     )

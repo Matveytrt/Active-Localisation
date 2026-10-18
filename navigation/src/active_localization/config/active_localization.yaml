@@ -6,8 +6,10 @@ landmarks:
   # the navigation container [unverified: ENG checks]:
   file: /home/app/ros2_ws/src/rtabmap_landmarks/config/landmarks.yaml
   frame_id: map
-  # Axis of the landmark frame that points out of the marker face.
-  # [unverified] — set after T-003; null disables the facing check.
+  # Axis of the landmark frame that points out of the marker face; used by
+  # visible_count only. [unverified] — null disables its facing check.
+  # marker_soft_count ignores it and takes normals from scorer.params
+  # (default (0, -1) for every marker, spec T-009 §1).
   normal_axis: null
   ids: [1, 2, 3, 4, 5]
 
@@ -15,35 +17,50 @@ camera:                 # torso_rgbd (FACTS)
   hfov: 1.089
   min_range: 0.3
   max_range: 9.0        # RTAB-Map landmark max range
-  offset_x: 0.0         # [unverified] camera offset in base_link; ENG reads from TF
+  offset_x: 0.07        # base_link -> torso_rgbd x offset (FACTS 18.10)
   offset_y: 0.0
   offset_yaw: 0.0
   max_incidence: 1.2
 
 scorer:
-  # 'null' = control (behaves like baseline); 'visible_count' = reference.
-  # The method scorer is registered in scorers/__init__.py (T-009, GATE-1).
-  name: visible_count
+  # 'null' = control (behaves like baseline); 'visible_count' = reference;
+  # 'marker_soft_count' = the method (ADR-001, S2*, spec T-009 §2).
+  # Values below = spec §2 (same as the code defaults).
+  name: marker_soft_count
   params:
-    soft: 0.1
-    weighting: count
-    saturate: 2.0       # "enough is enough": 2 markers in view is as good as 5
+    k_fov: 40.0         # rad^-1
+    a_min: 500.0        # px^2 (ENG-10)
+    k_a: 20.0           # RND-7: w(1.97 m, never detected) 0.15
+    r_min: 0.66         # m, RND-7: centred between 0.61 (✗) and 0.71 (✓)
+    k_r: 40.0           # m^-1 (RND-7)
+    focal_px: 528.4     # px
+    marker_size: 0.08   # m
+    m_sat: 1.0          # M
+    default_normal: [0.0, -1.0]   # all markers face -y
+    normals: {}                   # optional per id, e.g. {3: [0.0, -1.0]}
+    occ_stop: 0.20      # m: occlusion segment stops this far in front of the marker
+    # [assumption] shelf rows (merged collision boxes of the world) [xmin, xmax, ymin, ymax]
+    occlusion_rows:
+      - [-2.9, 2.15, 0.9, 1.5]
+      - [-2.9, 2.15, 3.4, 4.0]
 
 yaw_planner:
   n_bins: 36
-  step: 0.25
+  step: 0.20            # spec T-009 §4 (ActLoc 20 cm)
   w_score: 1.0
-  w_forward: 0.5
+  w_forward: 0.3        # spec T-009 §4
   w_smooth: 0.5
   w_limit: 100.0
-  max_dyaw_per_m: 1.0
+  max_dyaw_per_m: 2.0   # RND-7: wz_max / v_cruise ≈ 1.0 / 0.5 [estimate until T-009d]
   pin_start: true
   pin_goal: true
 
-cost_field:
+cost_field:              # Python OccupancyGrid path (al_cost_field), 0..100 values
   yaw_bins: 36
-  good_score: 2.0
-  cost_max: 60
+  good_score: 0.6321205588285577   # s_ref = 1 - e^-1 (spec T-009 §3)
+  # [assumption] ~ c_max 40 of 254 in costmap units, IF the StaticLayer scales
+  # occupancy 0..100 linearly to 0..254 [unverified]. The C++ layer uses c_max directly.
+  cost_max: 16
   power: 1.0
 
 navigator:

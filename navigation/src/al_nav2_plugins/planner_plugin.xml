@@ -1,0 +1,5 @@
+<library path="al_nav2_plugins">
+  <class name="al_nav2_plugins/LocalizationAwarePlanner" type="al_nav2_plugins::LocalizationAwarePlanner" base_class_type="nav2_core::GlobalPlanner">
+    <description>Wraps an inner global planner (Theta*) and writes DP-chosen headings into the path so the camera sees markers (yaw lever of the active localization method).</description>
+  </class>
+</library>

@@ -1,0 +1,11 @@
+# LaTeX build artefacts (report/build.sh); the PDF is built, not committed.
+*.aux
+*.log
+*.out
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.bbl
+*.blg
+*.toc
+report.pdf

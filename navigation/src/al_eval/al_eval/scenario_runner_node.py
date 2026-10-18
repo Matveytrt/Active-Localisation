@@ -21,7 +21,9 @@ Sequence:
    0 all goals succeeded, 3 any goal failed / rejected / timed out,
    4 not ready (action server or TF), 2 bad input, 130 interrupted.
 
-Per goal it records: terminal status, wall and sim duration, GT path length
+Per goal it records: terminal status, wall and sim duration, sim-time start
+and end stamps (``start_sim_s`` / ``end_sim_s``, the evaluation window of
+``eval/crop_run.py``), GT path length
 (integrated xy distance of ``--distance-topic``, default ``/odom_gt``), final
 xy / yaw error of the *estimated* pose (TF) w.r.t. the goal and the Nav2
 ``number_of_recoveries`` from the last feedback.
@@ -178,6 +180,8 @@ class ScenarioRunner(Node):
             res.message = message
             res.duration_wall_s = end_wall - t0_wall
             res.duration_sim_s = end_sim - t0_sim
+            res.start_sim_s = t0_sim
+            res.end_sim_s = end_sim
             res.path_length_m = (self.path_length - path0
                                  if self.distance_topic else None)
             if self.last_feedback is not None:
