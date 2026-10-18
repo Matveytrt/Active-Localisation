@@ -17,6 +17,9 @@
     <plugin name="astribot_planar_move" filename="libgazebo_ros_planar_move.so">
       <ros>
         <namespace>/</namespace>
+        <!-- T-004: ROS 2 planar_move ignores <odometry_topic> (ROS 1 tag; log shows
+             "Advertise odometry on [/odom]") — the topic is set by remapping. -->
+        <remapping>odom:=odom_gt</remapping>
       </ros>
       <command_topic>cmd_vel</command_topic>
       <!-- T-004 (D-3): the plugin's odometry is the true Gazebo pose, so it is

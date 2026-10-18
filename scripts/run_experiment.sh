@@ -39,6 +39,11 @@ set -euo pipefail
 
 REPO_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 
+# Non-interactive: `docker compose exec -T` still forwards stdin, and with a
+# terminal on stdin it hung in the pre-flight check (18.10 13:13, ENG); under
+# nohup (stdin = /dev/null) it never did. Detach stdin for the whole runner.
+exec </dev/null
+
 # ===================================================================== config
 # ENG: verify every value in this block on the testbed. [unverified]
 
@@ -301,6 +306,12 @@ EOF
 }
 
 # ===================================================================== main
+# One runner at a time: two runners kill each other's stacks and share the
+# container run dirs (happened 18.10 overnight, FACTS). Lock file on the host.
+if [[ $DRY_RUN -eq 0 ]]; then
+  exec 9>"${RUNNER_LOCK:-/tmp/al_run_experiment.lock}"
+  flock -n 9 || die "another run_experiment.sh is already running (lock ${RUNNER_LOCK:-/tmp/al_run_experiment.lock})"
+fi
 GIT_COMMIT=$(git -C "$REPO_ROOT" rev-parse --short HEAD 2>/dev/null || echo unknown)
 if [[ -n $(git -C "$REPO_ROOT" status --porcelain 2>/dev/null) ]]; then
   GIT_DIRTY=true; else GIT_DIRTY=false; fi
