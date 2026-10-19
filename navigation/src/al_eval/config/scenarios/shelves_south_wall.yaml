@@ -1,0 +1,13 @@
+# ENG (D-6 demo, LEAD-40): route-lever scenario. Start = spawn (-2.0, -0.5, 0) after the
+# start-up nudge. Goal 1 drops to the south corridor; goal 2 is one straight leg along
+# y = -1.4 to the east end. That leg is outside the marker band: markers 1/2 (y 0.89, face -y)
+# are 2.3 m away, beyond r_max ~1.9 m. y = -1.4 is the free line RND used for the offline
+# route-lever probe (knowledge/predict/prediction.md). Baseline should drive straight; active
+# (c_max 150) is predicted to bend the route toward y ~ -0.8, where markers are visible.
+name: shelves_south_wall
+frame_id: map
+goal_timeout_s: 180
+settle_s: 2.0
+goals:
+  - {x: -2.0, y: -1.4, yaw: 0.0}
+  - {x: 2.6, y: -1.4, yaw: 0.0}
