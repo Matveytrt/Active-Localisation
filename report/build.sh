@@ -2,8 +2,8 @@
 # Build the 2-page report: report/report.pdf (latexmk + pdflatex).
 #   report/build.sh          build
 #   report/build.sh clean    remove build artefacts (keeps report.pdf)
-# The results table is read from ../eval_out/summary_table.tex (repo root)
-# when it exists (T-011a); otherwise a placeholder table is printed.
+# Results (T-012e): the results table is inlined in report.tex (x4 summary from
+# eval/summarize.py + RND's paired CIs); figures are in report/figures/.
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
@@ -12,7 +12,7 @@ if [[ "${1:-}" == "clean" ]]; then
   exit 0
 fi
 
-# -g: always rebuild (latexmk does not notice when ../eval_out/summary_table.tex appears)
+# -g: always rebuild
 latexmk -g -pdf -interaction=nonstopmode -halt-on-error report.tex
 
 pages=$(pdfinfo report.pdf | awk '/^Pages:/ {print $2}')
