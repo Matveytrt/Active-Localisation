@@ -1,5 +1,8 @@
 % Active Localization -- 2-page report (T-012a skeleton, T-012b: RND review 05_report_review.md applied).
-% Build: report/build.sh  (latexmk + pdflatex) -> report/report.pdf, must be <= 2 pages.
+% Build: report/build.sh  (latexmk + pdflatex) -> report/report.pdf.
+% Page rule (T-012h, DIR): the BODY (sections 1-6, tables, Fig. 1, references) is <= 2 pages;
+% the figures are in an appendix that starts on page 3 (\clearpage + \onecolumn, label app:start)
+% and takes <= 2 pages (Figs. A1-A3). build.sh checks both from report.aux / pdfinfo.
 %
 % Source convention: every number in the text carries a comment `% src: <file>`.
 %   _team/...  = team bus (DECISIONS, FACTS, tasks, knowledge/rnd)
@@ -85,22 +88,8 @@ $M=1$ because usually at most one marker is in view.
 \begin{equation}
 \mathrm{cost}(x,y)=\mathrm{round}\big(c_{\max}\,(1-\min(s^*/s_{\mathrm{ref}},1))^p\big),
 \end{equation}
-$s_{\mathrm{ref}}=1-e^{-1}\approx0.632$, $p=1$, $c_{\max}=150$ (of 252), added to the master cost as $\min(\text{master}+\text{cost},252)$ on cells that are not lethal, inscribed or unknown; adding (not $\max$) keeps the inflation gradient below $c_{\max}$, so paths do not hug the shelves. Theta* then prefers the low-cost band in front of the marker rows (grey in Fig.~\ref{fig:results}a) when the detour is cheap.
+$s_{\mathrm{ref}}=1-e^{-1}\approx0.632$, $p=1$, $c_{\max}=150$ (of 252), added to the master cost as $\min(\text{master}+\text{cost},252)$ on cells that are not lethal, inscribed or unknown; adding (not $\max$) keeps the inflation gradient below $c_{\max}$, so paths do not hug the shelves. Theta* then prefers the low-cost band in front of the marker rows (the two bands of $s^*$ in Fig.~\ref{fig:smap}) when the detour is cheap.
 % src: _team/tasks/T-009_method_impl.md §3 v2 (additive combine, RND-7 item 2); c_max = 150: _team/DECISIONS.md (D-5 log, DIR 2026-10-18 15:45), nav2_params_active.yaml loc_layer.c_max: 150
-
-% Former Fig. 1 (s_star.png, best-over-yaw score map) removed in T-012e to fit 2 pages:
-% the same s* field is the grey background of Fig. 1a (trajectories). File kept in report/figures/.
-
-% Fig. 1 (results; "Fig. 3a/3b" in RND's 08 §4), full width; defined here so that it floats to the top of page 2.
-\begin{figure*}[t]
-\centering
-\includegraphics[height=3.5cm,trim=0 0 0 36,clip]{figures/trajectories.pdf}\hfill
-\includegraphics[height=3.5cm]{figures/paired_t010b.pdf}
-\caption{(a, left) Route-lever demo (one run): baseline keeps $y=-1.4$\,m and sees no marker; active bends 0.5\,m into the high-$s^*$ band (grey) and faces the markers (arrows). (b, right) Paired differences active $-$ baseline per seed (grey) with mean and 95\,\% $t$-interval (blue).}
-% src (a): runs/d6_20261019_055924/plots/trajectories.pdf (_team/final_inputs/trajectories.pdf; suptitle cropped); caption: _team/final_inputs/08_final_findings.md §4
-% src (b): knowledge/figures/paired_t010b.pdf (scripts/t011_paired_plot.py; _team/final_inputs/paired_t010b.pdf); 08 §4, 07 §B10
-\label{fig:results}
-\end{figure*}
 
 \textbf{Yaw lever: heading DP.} The Theta* path is resampled every 0.20\,m and a Viterbi DP over $B=36$ heading bins $\psi_b$ picks one heading per waypoint ($\phi_j$ = travel direction):
 % src: _team/tasks/T-009_method_impl.md §4 (step 0.20 m, B = 36)
@@ -116,7 +105,6 @@ The heading term is \emph{opportunity-driven}: its weight grows with the quality
 % src: _team/knowledge/rnd/02_RESEARCH_iter2_math.md Block D ("Check of LEAD's 3-lite against RAVPP eq. 15-16"); _team/DECISIONS.md ADR-001 (yaw trigger)
 \begin{table}[t]
 \centering\footnotesize
-\setlength{\tabcolsep}{2.5pt}
 \caption{Building blocks taken from prior work.}
 \label{tab:papers}
 % src: _team/tasks/T-009_method_impl.md §8; _team/knowledge/rnd/02_RESEARCH_iter2_math.md Block D; _team/knowledge/rnd/03_GATE1_RND_recommendation.md
@@ -134,7 +122,6 @@ LWL~\cite{lwl} & ``pixels matter'' $\to$ projected-area gate & no learning (no v
 
 \begin{table}[t]
 \centering\footnotesize
-\setlength{\tabcolsep}{2.5pt}
 \caption{Parameters (spec v2; repository: \texttt{active\_localization.yaml}, active Nav2 params).}
 \label{tab:params}
 % src: _team/tasks/T-009_method_impl.md v2: §1 (f, s), §2 (scorer, v2: k_A 20, r_min 0.66, k_r 40), §3 (layer), §4 (DP, v2: k 2.0 [estimate])
@@ -148,6 +135,40 @@ DP & step 0.20\,m, $B=36$, $w_s=1.0$, $w_f=0.3$, $w_{sm}=0.5$, $k=2.0$\,rad/m, $
 \bottomrule
 \end{tabularx}
 \end{table}
+
+% T-012h: all data figures (former Fig. 1a/1b and the s* map) are in the appendix (Figs. A1-A3, page 3+).
+% The results table (Table 3) is full width; defined here (after Tables 1-2, still on page 1)
+% so that it floats to the top of page 2.
+% ---------------------------------------------------------------------
+% Table 3: x4 summary from eval/summarize.py (_team/final_inputs/summary_table.tex = runs/t010b_20261019_055924/x4/summary/summary_table.tex, 7 rows)
+% + row "Path with marker in view" + column "Delta active - base [95 % CI]" (08 §4, 07 §D3 "Table 2").
+% Changes vs the generated file: APE in mm instead of m (0.040 m = 40 mm, same digits); std columns kept.
+% Inlined (not \input) because of the extra row/column; eval_out/summary_table.tex is no longer read.
+\begin{table*}[t]
+\centering\footnotesize
+\caption{Noise ${\times}4$ (primary): mean $\pm$ std over 5 seeds; $\Delta$: mean paired difference active $-$ baseline, 95\,\% $t$-interval. More metrics: repository.}
+\label{tab:results}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Metric & baseline & active & control & $\Delta$ active $-$ baseline [95\,\% CI] \\
+\midrule
+% src: 08_final_findings.md §4 (33 / 66 / 22), C1 (+32 pp [+29, +36]); 07_results_draft.md §D1, §D3
+Path with a marker in view [\%] & 33 & 66 & 22 & $+32$\;[$+29$,\;$+36$] \\
+% src: summary_table.tex rows (x4); Delta CIs: 07_results_draft.md §D3 "Table 2" line, 08 C3
+APE RMSE [mm] & $40\pm2$ & $39\pm3$ & $37\pm1$ & $-1.5$\;[$-6.2$,\;$+3.2$] \\
+APE max [mm] & $119\pm21$ & $117\pm12$ & $109\pm25$ & $-1.9$\;[$-31$,\;$+27$] \\
+Detections per m & $3.0\pm0.8$ & $14.1\pm0.7$ & $3.3\pm0.7$ & $+11.1$\;[$+9.6$,\;$+12.6$] \\
+Max $|$\texttt{map}$\to$\texttt{odom}$|$ [m] & $1.279\pm0.557$ & $1.083\pm0.299$ & $1.069\pm0.335$ & $-0.20$\;[$-0.96$,\;$+0.57$] \\
+% src: time CI 08 C7 / 07 §D3; path length Delta -0.132 (5/5): summary_x4.md "Paired by seed" (no CI computed by RND)
+Time [s] & $36.0\pm1.9$ & $44.2\pm2.0$ & $40.5\pm0.9$ & $+8.2$\;[$+6.9$,\;$+9.4$] \\
+Path length [m] & $16.2\pm0.0$ & $16.1\pm0.1$ & $16.2\pm0.0$ & $-0.13$ (5/5) \\
+Goals reached & 15/15 & 15/15 & 15/15 & -- \\
+\midrule
+% src: summary_x6.md (APE RMSE 0.054 / 0.049 / 0.053 m, APE max 0.160 / 0.138 / 0.159 m); 08 §4
+\multicolumn{5}{@{}l}{${\times}6$ (stress), baseline / active / control: APE RMSE 54 / 49 / 53\,mm, APE max 160 / 138 / 159\,mm.} \\
+\bottomrule
+\end{tabular}
+\end{table*}
 
 % =====================================================================
 \section{Integration in Nav2}
@@ -212,9 +233,9 @@ All series are cropped to [first goal start, last goal end] (start-up relocaliza
 % Text: RND final, _team/final_inputs/08_final_findings.md §3 "§5 Results" (verbatim; only the Table/Fig. references are added)
 All 90 goals of the main experiment were reached (loop\_a, 5 seeds $\times$ 3 modes, modes interleaved per seed, odometry noise ${\times}4$ as pre-registered and ${\times}6$ as an added stress level).
 % src: T-010b_ENG.md "Setup" (90/90 goals); summary_x4.md, summary_x6.md (goals reached 15/15 per mode)
-The method changes what the robot sees, as predicted offline. The path share with a marker in view rose from 33\,\% to 66\,\% at ${\times}4$ (prediction 60\,\%; +32\,pp, 95\,\% CI [+29, +36], 5/5 seeds; Table~\ref{tab:results}, Fig.~\ref{fig:results}b), detections rose ${\times}4.7$ and the longest blind arc fell from 4.9 to 3.3\,m.
+The method changes what the robot sees, as predicted offline. The path share with a marker in view rose from 33\,\% to 66\,\% at ${\times}4$ (prediction 60\,\%; +32\,pp, 95\,\% CI [+29, +36], 5/5 seeds; Table~\ref{tab:results}, Fig.~\ref{fig:paired}), detections rose ${\times}4.7$ and the longest blind arc fell from 4.9 to 3.3\,m.
 % src: 08_final_findings.md C1 (33 -> 66 %, +32 pp [+29, +36], 5/5, predicted 60 %, detections x4.7, blind arc 4.9 -> 3.3 m); 07_results_draft.md §D1; det/m 3.0 -> 14.1: summary_x4.md
-The control (same stack, null scorer) stayed at baseline. When the planned route has no marker in view, the layer bends it into the marker band (Fig.~\ref{fig:results}a: 0.5\,m detour, 0\,$\to$\,69 detections, +2\,s).
+The control (same stack, null scorer) stayed at baseline. When the planned route has no marker in view, the layer bends it into the marker band (Fig.~\ref{fig:demo}: 0.5\,m detour, 0\,$\to$\,69 detections, +2\,s).
 % src: 08 C1 (control ~ baseline; path share 22 %, det/m 3.3: 07 §D3, summary_x4.md); 08 C2 / T-010b_ENG.md D-6 (y -1.24 ... -0.86, bends 0.54 m; detections 0 -> 69; +0.15 m, +2.1 s)
 Accuracy at ${\times}4$ did not change measurably: APE RMSE $\Delta=-1.5$\,mm [$-6.2$, $+3.2$] (baseline 40\,mm), so the gain is at most 6\,mm.
 % src: 08 C3 (-1.5 mm [-6.2, +3.2], 3/5; upper bound 6.2 mm ~ 16 %); baseline 0.040 m: summary_x4.md
@@ -232,38 +253,6 @@ The control was slightly more accurate than the baseline at ${\times}4$ ($-2.7$\
 Limitations: one scenario, 5 seeds, simulation; ${\times}6$ was added after the first run; the route demo is a single run; the detection model was fitted on one marker. Improvements: an uncertainty-gated heading term to cut the time cost, a lidar-degeneracy term in the scorer, and tests in ICP-poor corridors.
 % src: 08 §3; FACTS.md 18.10 (ENG-10 detection model fitted on one marker); DECISIONS.md D-7 (lidar-degraded condition deferred)
 
-% ---------------------------------------------------------------------
-% Table 3: x4 summary from eval/summarize.py (_team/final_inputs/summary_table.tex = runs/t010b_20261019_055924/x4/summary/summary_table.tex, 7 rows)
-% + row "Path with marker in view" + column "Delta active - base [95 % CI]" (08 §4, 07 §D3 "Table 2").
-% Changes vs the generated file: APE in mm instead of m (0.040 m = 40 mm, same digits); std columns kept.
-% Inlined (not \input) because of the extra row/column; eval_out/summary_table.tex is no longer read.
-\begin{table}[t]
-\centering\scriptsize
-\setlength{\tabcolsep}{1.1pt}
-\caption{Noise ${\times}4$ (primary): mean $\pm$ std over 5 seeds; $\Delta$: mean paired difference active $-$ baseline, 95\,\% $t$-interval. More metrics: repository.}
-\label{tab:results}
-\begin{tabular}{@{}lcccc@{}}
-\toprule
-Metric & baseline & active & control & $\Delta$ [95\,\% CI] \\
-\midrule
-% src: 08_final_findings.md §4 (33 / 66 / 22), C1 (+32 pp [+29, +36]); 07_results_draft.md §D1, §D3
-Path with marker [\%] & 33 & 66 & 22 & $+32$\,[$+29$,\,$+36$] \\
-% src: summary_table.tex rows (x4); Delta CIs: 07_results_draft.md §D3 "Table 2" line, 08 C3
-APE RMSE [mm] & $40\!\pm\!2$ & $39\!\pm\!3$ & $37\!\pm\!1$ & $-1.5$\,[$-6.2$,\,$+3.2$] \\
-APE max [mm] & $119\!\pm\!21$ & $117\!\pm\!12$ & $109\!\pm\!25$ & $-1.9$\,[$-31$,\,$+27$] \\
-Detections per m & $3.0\!\pm\!0.8$ & $14.1\!\pm\!0.7$ & $3.3\!\pm\!0.7$ & $+11.1$\,[$+9.6$,\,$+12.6$] \\
-Max $|$\texttt{map}$\to$\texttt{odom}$|$ [m] & $1.279\!\pm\!0.557$ & $1.083\!\pm\!0.299$ & $1.069\!\pm\!0.335$ & $-0.20$\,[$-0.96$,\,$+0.57$] \\
-% src: time CI 08 C7 / 07 §D3; path length Delta -0.132 (5/5): summary_x4.md "Paired by seed" (no CI computed by RND)
-Time [s] & $36.0\!\pm\!1.9$ & $44.2\!\pm\!2.0$ & $40.5\!\pm\!0.9$ & $+8.2$\,[$+6.9$,\,$+9.4$] \\
-Path length [m] & $16.2\!\pm\!0.0$ & $16.1\!\pm\!0.1$ & $16.2\!\pm\!0.0$ & $-0.13$ (5/5) \\
-Goals reached & 15/15 & 15/15 & 15/15 & -- \\
-\midrule
-% src: summary_x6.md (APE RMSE 0.054 / 0.049 / 0.053 m, APE max 0.160 / 0.138 / 0.159 m); 08 §4
-\multicolumn{5}{@{}p{\linewidth}@{}}{${\times}6$ (stress): APE RMSE 54 / 49 / 53\,mm, APE max 160 / 138 / 159\,mm.} \\
-\bottomrule
-\end{tabular}
-\end{table}
-\vspace{-2pt}
 \footnotesize
 \begin{thebibliography}{9}\setlength{\itemsep}{0pt}
 \bibitem{fif} Z.~Zhang, D.~Scaramuzza, ``Fisher Information Field: an Efficient and Differentiable Map for Perception-aware Planning,'' arXiv:2008.03324, 2020.
@@ -272,5 +261,43 @@ Goals reached & 15/15 & 15/15 & 15/15 & -- \\
 \bibitem{actloc} J.~Li et al., ``ActLoc: Learning to Localize on the Move via Active Viewpoint Selection,'' in Proc.\ CoRL, 2025.
 \end{thebibliography}
 % src (references): first pages of the PDFs in docs/ (arXiv ids, IROS 2024 header, CoRL 2025 footer)
+
+% =====================================================================
+% APPENDIX (T-012h, DIR): figures, page 3+, at most 2 pages. Not part of the 2-page body;
+% build.sh checks that the label app:start is on page 3 (body <= 2 pages).
+% =====================================================================
+\clearpage
+\onecolumn
+\setcounter{figure}{0}
+\renewcommand{\thefigure}{A\arabic{figure}}
+\captionsetup{font=small,skip=4pt}
+\setlength{\textfloatsep}{12pt plus 2pt}\setlength{\floatsep}{12pt plus 2pt}
+\makeatletter\setlength{\@fptop}{0pt}\makeatother% float pages (Fig. A3) top-aligned
+\phantomsection\label{app:start}
+\section*{Appendix: Figures}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth,trim=0 0 0 36,clip]{figures/trajectories.pdf}
+\caption{Route-lever demo (D-6: one run, seed 42, noise ${\times}4$, a straight leg planned at $y=-1.4$\,m below the marker rows). Thin dashed: ground truth; thick: estimate; arrows: estimated heading every 0.5\,m; grey background: $s^*$ (Fig.~\ref{fig:smap}). The baseline (left) keeps $y=-1.4$\,m and sees no marker; the active mode (right) bends 0.5\,m into the high-$s^*$ band and faces the markers.}
+% src: runs/d6_20261019_055924/plots/trajectories.pdf (_team/final_inputs/trajectories.pdf; suptitle cropped, its legend text is in the caption); caption: _team/final_inputs/08_final_findings.md §4; T-010b_ENG.md "D-6"
+\label{fig:demo}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/paired_t010b.pdf}
+\caption{Paired differences active $-$ baseline per seed (grey) with mean and 95\,\% $t$-interval (blue), $n=5$ seeds per noise level (${\times}4$ primary, ${\times}6$ stress). Left: path share with a marker in view; right: APE RMSE.}
+% src: knowledge/figures/paired_t010b.pdf (scripts/t011_paired_plot.py on runs/t010b_20261019_055924/{x4,x6}; _team/final_inputs/paired_t010b.pdf); 08 §4, 07 §B10
+\label{fig:paired}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/s_star.png}
+\caption{Best-over-yaw score $s^*(x,y)$ of S2* (max over 36 yaws, base\_link position; contour $s^*=0.5$). Grey: shelf rows; arrows: marker normals. The two bands are what the route lever attracts the path to.}
+% src: navigation/src/active_localization/tools/score_maps.py (Python oracle, 36 yaws = T-009 §3), regenerated in T-012h with the v2 scorer (k_A 20, r_min 0.66, k_r 40 = Table 2); caption: T-012a (git history of this file)
+\label{fig:smap}
+\end{figure}
 
 \end{document}
