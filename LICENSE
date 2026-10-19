@@ -1,0 +1,9 @@
+TODO(DIR): no license has been chosen for this repository yet.
+
+Until one is chosen, all rights are reserved by the authors of the respective files. Notes for
+the decision:
+  - navigation/src/al_nav2_plugins carries MIT headers (Copyright 2026 Matvey Razgulov).
+  - Other packages declare MIT or Apache-2.0 in their package.xml; the two gazebo packages
+    (lidar_stitching, world_and_robot) still say "TODO: License declaration".
+  - gazebo/src/world_and_robot contains the Astribot robot meshes and docs/ contains papers
+    (PDF): check that they may be redistributed before the repository is made public.
