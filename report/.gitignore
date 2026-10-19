@@ -9,3 +9,5 @@
 *.blg
 *.toc
 report.pdf
+*.xdv
+report_ru.pdf

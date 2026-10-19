@@ -1,6 +1,8 @@
 # report/figures
 
-Figures used by `report/report.tex`.
+Figures used by `report/report.tex` and by its Russian translation `report/report_ru.tex`
+(same files; in `report_ru.tex` Fig. 1 is set at height 3.2 cm instead of 3.5 cm to keep the
+longer Russian text within 2 pages).
 
 | File | Produced by | Used in |
 |---|---|---|
