@@ -1,14 +1,18 @@
 # report/figures
 
-Figures used by `report/report.tex`. A missing file is drawn as a red TODO box,
-so the report always builds.
+Figures used by `report/report.tex` and by its Russian translation `report/report_ru.tex`
+(same files). Since T-012h all data figures are in the **appendix** (page 3+, at most 2 pages),
+full text width; the 2-page body contains only the TikZ integration diagram (Fig. 1) and the
+tables, and refers to the appendix figures (EN "Fig. A1-A3", RU "рис. П1-П3").
 
-| File | Status | Produced by | Used in |
-|---|---|---|---|
-| `s_star.png` | present | `navigation/src/active_localization/tools/score_maps.py --out <dir>` (T-009a; best-over-yaw S2* score, 36 yaws) | Fig. 1 (method) |
-| `trajectories.pdf` | TODO (T-011a) | `eval/plots.py`: one representative seed, baseline vs active GT trajectories on top of the s* map, heading arrows every ~0.5 m (analysis plan §8, Fig. 1) | Fig. 3 left |
-| `ape_vs_time.pdf` | TODO (T-011a) | `eval/plots.py`: APE vs time, all runs thin, mode mean thick, accepted detections as ticks under the curves (analysis plan §8, Fig. 2) | Fig. 3 right |
+| File | Produced by | Used in |
+|---|---|---|
+| `trajectories.pdf` | `eval/plots.py` on the D-6 route-lever demo, `runs/d6_20261019_055924/plots/trajectories.pdf` (seed 42, noise x4, `shelves_south_wall.yaml`; s* background, estimated heading every 0.5 m). The suptitle is cropped in LaTeX (`trim`); its legend text is in the caption. | Fig. A1 / П1 |
+| `paired_t010b.pdf` | `scripts/t011_paired_plot.py` on `runs/t010b_20261019_055924/{x4,x6}` (RND, `knowledge/figures/paired_t010b.pdf`): per-seed paired differences active - baseline with mean and 95 % t-interval | Fig. A2 / П2 |
+| `s_star.png` | `python3 -I navigation/src/active_localization/tools/score_maps.py --out <dir>` (best-over-yaw S2* score, 36 yaws). Regenerated in T-012h with the v2 scorer defaults (k_A 20, r_min 0.66, k_r 40, as in Table 2); the T-012a file used the v1 parameters. | Fig. A3 / П3 |
 
-The integration diagram (Fig. 2) is TikZ inside `report.tex`.
-The results table is read from `eval_out/summary_table.tex` at the repository
-root (T-011a output, booktabs `tabular`); without it a placeholder table is printed.
+The integration diagram (Fig. 1) is TikZ inside the `.tex` files.
+The results table (Table 3, full width) is inlined in the `.tex` files: the x4 summary from
+`eval/summarize.py` (`runs/t010b_20261019_055924/x4/summary/summary_table.tex`)
+plus the "Path with a marker in view" row and the paired-CI column from RND's T-011
+analysis (`08_final_findings.md` §4).
