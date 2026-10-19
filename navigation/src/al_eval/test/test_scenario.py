@@ -245,13 +245,18 @@ def test_dry_run_sequence(mode):
             'al_odom_noise odom_noise.launch.py',
             'nav2_planner_custom navigation_launch.py',
             'al_eval traj_recorder.launch.py']
-    if mode == 'active':
-        keys.append('ACTIVE')
+    # Active/control modes use native Nav2 plugins (ADR-001): no extra ACTIVE
+    # launch by default, the difference is the Nav2 params file.
     keys += ['al_eval scenario_runner', 'kill -INT $(cat']
     pos = [first.find(k) for k in keys]
     assert all(p >= 0 for p in pos), list(zip(keys, pos))
     assert pos == sorted(pos), list(zip(keys, pos))
+    if mode == 'active':
+        assert 'nav2_params_active.yaml' in first
+    if mode == 'control':
+        assert 'nav2_params_control.yaml' in first
     if mode == 'baseline':
+        assert 'nav2_params_active.yaml' not in first
         assert 'ACTIVE' not in first.split('al_eval scenario_runner')[0] \
             .split('al_eval traj_recorder.launch.py')[1]
     # no docker command is actually executed in dry-run
