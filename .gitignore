@@ -62,3 +62,21 @@ navigation/maps/*.db
 
 # gazebo: траектории, которые пишет pose_saver_plugin
 gazebo/src/world_and_robot/robot_poses/*.tum
+
+# Experiment outputs (scripts/run_experiment.sh, eval/): run dirs, evo results, tables, figures.
+# Anchored at the repository root; copy final figures to report/figures/ on purpose.
+/al_runs/
+/runs/
+/eval_out/
+/results/
+
+# Map download (scripts/get_map.sh): partial downloads. The checksum manifest
+# navigation/maps/astribot_sim.db.sha256 IS tracked.
+navigation/maps/.*.part
+
+# Machine-local compose overrides (GPU/WSL settings), wheels and test leftovers
+compose.override.yaml
+*.whl
+Testing/
+*.orig
+*.rej

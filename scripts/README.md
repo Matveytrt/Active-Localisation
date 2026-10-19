@@ -40,6 +40,7 @@ executes nothing; only the scenario is validated on the host).
    right after mapping (the DB in `navigation/maps/` is mounted at
    `/home/app/ros2_ws/maps`; on the WSL testbed `~/al_maps` is mounted instead):
    `cp maps/astribot_sim.db maps/astribot_sim.pristine.db`.
+   `scripts/get_map.sh` does this for you after a verified download (see below).
 3. **Start-up nudge** (`scripts/al_nudge.py`, both modes): RTAB-Map publishes no
    `map->odom` until the robot moves, and Nav2 never activates without it. The
    runner drives 0.6 m forward and back on `/odom_gt` before starting Nav2
@@ -116,6 +117,26 @@ succeeded, 3 a goal failed / was rejected / timed out, 4 action server or TF
 not available in time, 2 bad scenario, 130 interrupted; 5 is set by the
 script when a stack died before `scenario_runner` started; `null` in a dry
 run.
+
+## get_map.sh: download the map database
+
+The RTAB-Map database (`astribot_sim.db`, about 150 MB) is not in git. `scripts/get_map.sh`
+downloads it from a GitHub Release asset into `navigation/maps/`, verifies its SHA-256 against
+`navigation/maps/astribot_sim.db.sha256` (`<hex>  astribot_sim.db`, as `sha256sum` prints it) and
+makes the pristine copy `astribot_sim.pristine.db` that `run_experiment.sh` restores before each run.
+
+```bash
+scripts/get_map.sh                                   # URL and checksum from the script / manifest
+scripts/get_map.sh --url <url> --sha256 <hex> --out ~/al_maps   # explicit (e.g. the WSL testbed)
+scripts/get_map.sh --verify-only                     # check only; also accepts a pristine copy
+scripts/get_map.sh --print-sha256 <file>             # maintainers: hash to publish with the release
+```
+
+A mismatch discards the download (exit 3); an existing different DB is only replaced with
+`--force` (exit 4; a run modifies the working DB, the pristine copy is what counts). A `.gz` URL is
+gunzipped before the check. `AL_MAP_URL` / `AL_MAP_SHA256` override the defaults. **TODO(ENG/LEAD):**
+the release URL and the checksum in the manifest are placeholders until the DB is uploaded; the
+script refuses to run with them. Exit codes: `--help`.
 
 ## Scenario files
 

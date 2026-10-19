@@ -34,6 +34,7 @@ Both plugins read the scorer under their own plugin name (`loc_layer.*` for the 
 |---|---|---|
 | `scorer` | `marker_soft_count` | `null` = control run: layer cost 0, DP with score 0 (forward prior + pins only) |
 | `landmarks_file`, `marker_ids`, `marker_normal` | -, `[]` (all), `[0, -1]` | RTAB-Map landmark export; one outward face normal for all markers |
+| `marker_normal_axis` | `""` (off) | optional: derive each marker's normal from its `orientation` in the export (local axis `"+x"`, `"-y"`, ...; same as the Python `normal_axis`); `marker_normal` stays the fallback. On the current export `"+x"` gives normals within ~3° of -y; **unverified** that +x is the face normal of the real markers - off by default |
 | `hfov`, `k_fov` | 1.089, 40 | camera field of view |
 | `focal_px`, `marker_size` | 528.4, 0.08 | projected-area gate |
 | `a_min`, `k_a` | 500, 20 | |
@@ -91,3 +92,14 @@ and copy them to `test/fixtures/` when the parameters change.
 
 Experiment runs: `scripts/run_experiment.sh --mode baseline|active ...` (see `scripts/README.md`;
 the control mode is added by ENG, T-009d).
+
+## Live check
+
+`tools/check_live.sh` (with `check_live.py`) checks a running Nav2: plugin classes loaded
+(`ros2 param get` on `planner_server` / `global_costmap`), `loc_layer` and planner parameters
+against spec v2, layer cost statistics and the cost at "marker seen from 1.88 m" cells (or
+`--cell x,y,min,max`), and one `ComputePathToPose` sample (`--goal x,y[,yaw]` or
+`--scenario FILE`): last pose = goal, pose spacing = `step`, start yaw pinned, yaw differs from the
+path tangent (`--expect active`) or follows it (`--expect control`). Prints PASS / FAIL / WARN per
+check; exit code 1 on any FAIL. Run it in the `navigation` container or from the host
+(`NAV_CONTAINER` names the container). Thresholds tagged `[heuristic]` are judgement, not spec values.
