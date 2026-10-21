@@ -7,7 +7,7 @@ improves pose estimation. Testbed: the Astribot robot in Gazebo, lidar + marker 
 Everything runs in two Docker containers (ROS 2 Humble).
 
 > Status: the experiment (baseline vs active vs control) and the 2-page report are in progress.
-> Items marked **TODO(ENG)** are not final or not verified yet.
+> Items marked **TODO** are not final or not verified yet.
 
 ## Contents
 
@@ -108,7 +108,7 @@ source install/setup.bash
 ```
 
 `~/ros2_ws` in the container is the mounted `navigation/src`; the Nav2 params files are read from
-there at launch time, so editing them needs no rebuild. **TODO(ENG):** confirm the package list for
+there at launch time, so editing them needs no rebuild. **TODO:** confirm the package list for
 the final run (`active_localization` is the Python reference and tooling; the C++ plugins do not
 need it at run time).
 
@@ -149,7 +149,7 @@ use `--out ~/al_maps` there.
    used for the shipped map, as `[x, y, yaw°]` waypoints in the odom/world frame:
    `[-2.0,-0.5,90] [2.75,-0.5,90] [2.75,2.4,90] [-3.8,2.4,90] [-3.8,4.7,90] [2.75,4.7,90]
    [2.75,-0.5,90] [-2.0,-0.5,90] [-2.0,-0.5,0]`.
-   **TODO(ENG):** add the waypoint driver (currently outside the repository) to `scripts/`.
+   **TODO:** add the waypoint driver (currently outside the repository) to `scripts/`.
 4. Stop `complete_system.launch.py` with one Ctrl+C and wait until `rtabmap` has written the
    database; then export the marker poses:
    `ros2 run rtabmap_landmarks export_landmarks_from_db`. The result,
@@ -179,11 +179,11 @@ Add `--dry-run` to print every command without running anything. In `active` the
 `nav2_params_active.yaml` (variable `NAV_PARAMS_ACTIVE`); `control` generates a per-run copy of it
 with both scorers `"null"` and `loc_layer.enabled: false` and keeps it in the run directory.
 Options, environment overrides and exit codes: [`scripts/README.md`](scripts/README.md).
-**TODO(ENG):** the `control` mode and the final scenario/noise settings are described from the
+**TODO:** the `control` mode and the final scenario/noise settings are described from the
 runner on the T-009d branch; re-check these lines after it is merged.
 
 **Odometry noise.** The scenario runs use `al_odom_noise` with the noise scaled by a factor `k`
-(calibrated in D-3/D-5; the T-010 script used `k = 4`; **TODO(ENG):** final `k`): the covariance-like
+(calibrated in D-3/D-5; the T-010 script used `k = 4`; **TODO:** final `k`): the covariance-like
 parameters `k_xx … k_rt` are multiplied by `k²` and `scale_x`, `scale_y`, `scale_yaw`,
 `yaw_drift_per_m` by `k`, written to a params file passed as
 `NOISE_LAUNCH="ros2 launch al_odom_noise odom_noise.launch.py params_file:=<file> seed:=@SEED@"`.
