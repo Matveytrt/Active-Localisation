@@ -1,5 +1,7 @@
 # Active Localization
 
+Isaac Sim migration (branch `isaac`): [task registry](TASK_REGISTRY.md) · [iteration reports and reviews](iterations/README.md).
+
 Active localization for a mobile robot in simulation: the robot plans its route and its heading
 so that the STag markers it localizes against stay observable, and we measure whether that
 improves pose estimation. Testbed: the Astribot robot in Gazebo, lidar + marker SLAM

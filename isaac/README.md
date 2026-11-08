@@ -1,6 +1,8 @@
 # Isaac Sim: отдельный runtime Active-Localisation
 
-Рабочая ветка: `isaac-migration`. Gazebo и navigation пока не изменены.
+Актуальный [реестр задачи](../TASK_REGISTRY.md); подробные [итерации](../iterations/README.md).
+
+Рабочая ветка: `isaac`. Gazebo и navigation пока не изменены.
 
 Своя навигация уже собрана и проверена: [результат этапа 2](STEP_2_RESULT.md).
 GPU-рендер и собственная модель Astribot: [результат импорта](STEP_3_RESULT.md).
@@ -32,7 +34,7 @@ Vulkan хоста также видит RTX 5060 Ti и поддержку ray tr
 - GitHub остаётся `origin`. Локальный remote `workstation` указывает на сервер.
 - Основная среда исполнения — сервер. После завершённого изменения сохраняем commit
   на сервере и подтягиваем его на ноутбук: `git fetch workstation`,
-  `git merge --ff-only workstation/isaac-migration`.
+  `git merge --ff-only workstation/isaac`.
 - Перед началом работы проверяем `git status` в обеих копиях. Изменения одновременно
   в двух местах автоматически не перезаписываем; ветки не обновляем с force.
 - Кэши, runtime-логи и большие карты не коммитим. Нужные результаты отдельно копируем
