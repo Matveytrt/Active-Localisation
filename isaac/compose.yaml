@@ -1,0 +1,22 @@
+name: al-isaac
+services:
+  navigation:
+    image: al-isaac-navigation:humble
+    build:
+      context: .
+      dockerfile: Dockerfile.navigation
+    container_name: al-isaac-navigation
+    network_mode: host
+    user: "1005:1005"
+    environment:
+      HOME: /workspace
+      ROS_DOMAIN_ID: "71"
+      RMW_IMPLEMENTATION: rmw_fastrtps_cpp
+      FASTDDS_BUILTIN_TRANSPORTS: UDPv4
+    volumes:
+      - ../:/repo:ro
+      - ./runtime/navigation:/workspace:rw
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+    command: ["sleep", "infinity"]

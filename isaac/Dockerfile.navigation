@@ -1,0 +1,19 @@
+FROM osrf/ros@sha256:259c542d00f55e6380219c7ac0276eb12878ea7c36a856d187dc3fea1b70a6ce
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential cmake git libopencv-dev libyaml-cpp-dev libeigen3-dev \
+    python3-colcon-common-extensions python3-pytest python3-scipy python3-yaml \
+    python3-opencv python3-reportlab python3-pil \
+    ros-humble-navigation2 ros-humble-nav2-bringup ros-humble-rtabmap-ros \
+    ros-humble-tf2-sensor-msgs ros-humble-tf2-eigen \
+    ros-humble-pcl-ros ros-humble-pcl-conversions ros-humble-cv-bridge \
+    ros-humble-image-transport ros-humble-xacro \
+    && rm -rf /var/lib/apt/lists/*
+ARG STAG_REV=6214edc03095b6c488d3d95d866aa1a84228e574
+RUN git clone https://github.com/ManfredStoiber/stag.git /usr/local/lib/stag \
+    && cd /usr/local/lib/stag && git checkout "$STAG_REV" \
+    && cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
+    && cmake --build build -j 4
+WORKDIR /workspace
+CMD ["bash"]
