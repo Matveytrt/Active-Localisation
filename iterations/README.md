@@ -14,6 +14,7 @@
 | 007 | Своя карта RTAB-Map и baseline pilot | [report](007-map-baseline/report.md) | [review](007-map-baseline/review.md) |
 | 008 | Общий runner baseline/active/control | [report](008-runner-modes/report.md) | [review](008-runner-modes/review.md) |
 | 009 | Воспроизведение основного протокола и отчёт о переносе | [report](009-reproduction/report.md) | [review](009-reproduction/review.md) |
+| 010 | Короткое видео нового active demo | [report](010-video/report.md) | [review](010-video/review.md) |
 
 Для нового шага создавать NNN-name/report.md и review.md.
 Отчёт: задача, исходное состояние, изменения, команды/артефакты, фактические проверки,
