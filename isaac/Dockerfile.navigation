@@ -15,5 +15,12 @@ RUN git clone https://github.com/ManfredStoiber/stag.git /usr/local/lib/stag \
     && cd /usr/local/lib/stag && git checkout "$STAG_REV" \
     && cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
     && cmake --build build -j 4
+# The pinned desktop base contains header-only diagnostic_updater 4.0.6,
+# whereas the current Humble RTAB-Map binary links libdiagnostic_updater.so.
+# Upgrade this dependency explicitly; apt otherwise keeps the older installed
+# dependency because the RTAB-Map package has no minimum version constraint.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ros-humble-diagnostic-updater \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /workspace
 CMD ["bash"]

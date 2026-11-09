@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.16)
+project(isaac_map_finalize LANGUAGES C CXX)
+find_package(RTABMap REQUIRED COMPONENTS core)
+add_executable(finalize_map finalize_map.cpp)
+target_compile_features(finalize_map PRIVATE cxx_std_17)
+target_link_libraries(finalize_map PRIVATE rtabmap::core)

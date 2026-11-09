@@ -118,6 +118,59 @@ docker exec al-isaac-navigation python3 /repo/isaac/world_source.py --output /wo
 Подробные границы приёмки, включая расхождение HD15 .06/.064 m, —
 [итерация 006](../iterations/006-world-stag/report.md).
 
+## Своя карта и baseline
+
+[Итерация 007](../iterations/007-map-baseline/report.md): новая карта из настоящих
+сенсоров/noisy odom и 3 успешные NavigateToPose цели в свежей локализации.
+Это один pilot; active/control и статистические эксперименты ещё впереди.
+
+На сервере, с новым именем DB для каждого mapping:
+
+```bash
+bash isaac/start_bridge.sh --scene own-world --max-wall-seconds 7200
+bash isaac/start_slam.sh mapping /workspace/maps/OWN.db
+bash isaac/run_mapping_route.sh
+bash isaac/save_mapping.sh /workspace/maps/OWN.db
+bash isaac/control_bridge.sh shutdown
+docker wait al-isaac-astribot
+bash isaac/finalize_mapping.sh /workspace/maps/OWN.db /workspace/maps/OWN.global.db
+```
+
+Online SLAM ограничивает WM до 200 nodes, фильтрует occupancy cache по .15 m/10°,
+не загружает весь local-grid cache заранее. Это общий ресурсный профиль Isaac
+для 16 GiB RAM, явно отличающийся от unlimited defaults исходника. Он не удаляет
+исторические наблюдения: они остаются в DB/LTM. Без него первый долгий mapping
+получил OOM. В конце native RTAB-Map global optimizer включает LTM на отдельной
+копии DB при выключенном симуляторе; штатный exporter читает полный optimized graph.
+Побайтовая проверка Data/Link/raw poses подтвердила сохранение наблюдений.
+
+Принятая карта: `isaac/runtime/navigation/maps/isaac-20261109-global.db`,
+landmarks рядом в `.landmarks.yaml`. Occupancy `.pgm/.yaml` сохранены с префиксом
+`isaac-20261109-bounded`. SHA pristine — в `.db.sha256`; карты и логи вне Git.
+Детальная оценка — `.evaluation.json`, рисунок —
+`isaac/runtime/navigation/mapping-007/map-and-trajectory.png`.
+
+Для baseline сначала сделать отдельную writable DB-копию в `/workspace/maps`
+через собственный navigation контейнер, затем полностью перезапустить simulator
+и noise/STag, запустить `start_slam.sh localization /workspace/maps/EPISODE.db`.
+После `AL_ASTRIBOT_BRIDGE_READY`:
+
+```bash
+bash isaac/start_baseline.sh
+bash isaac/verify_baseline.sh
+```
+
+Probe ждёт active lifecycle nodes, использует известный start seed /initialpose
+один раз и посылает только NavigateToPose goals. Ручных Twist во время этих целей
+нет. Baseline — исходные Theta*/MPPI/BT, общий override скорости .6/.6/.8 согласует
+контроллер с физическим clamp адаптера. Будущие active/control должны делить эти
+ограничения, ресурсный профиль, pristine карту и новый landmarks YAML.
+
+Остановка: сначала `docker compose -f isaac/compose.yaml --profile nav --profile slam stop baseline slam fiducial`,
+затем `control_bridge.sh shutdown`, дождаться Docker, остановить свои noise/stitching/STag.
+Nav2 launch получает SIGINT для clean shutdown; core RTAB-Map запускается напрямую
+и сохраняет DB при завершении.
+
 ## Импорт собственной модели
 
 `bash isaac/run_import.sh` запускает отдельный контейнер `al-isaac-robot-import`.

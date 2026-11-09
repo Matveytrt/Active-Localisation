@@ -51,7 +51,7 @@
 
 ## Подтверждённый прогресс
 
-### Текущее состояние после дополнительного этапа 09.11.2026 утром
+### Текущее состояние после запуска 09.11.2026, 11:23 МСК
 
 Разовое отложенное выполнение `astribot-isaac-sim` состоялось: 005 принята в
 пределах диагностической комнаты. После прямой просьбы выполнить ещё один этап
@@ -59,8 +59,9 @@
 лидары, OBB-guard, исходный spawn и reset, с ограничениями качества PnP ниже.
 Ранее отдельные движение и датчики объединены в 005. Пользовательский «3-й шаг»
 сейчас означает следующий этап собственного мира и STag, а не повтор импорта 003.
-Следующее отложенное выполнение `astribot-8` — **09.11.2026 11:23:48 МСК**:
-начать **007 — новая карта RTAB-Map и baseline** с фактического состояния.
+Разовое выполнение `astribot-8` в 11:23:48 МСК состоялось: **007 принята** как
+собственная новая карта и один настоящий baseline pilot с тремя NavigateToPose goals.
+Следующий этап — 008 (active/control и runner). Новых повторных запусков не назначали.
 Подробная старая точка остановки сохранена как история в отчёте 005;
 она не является текущим списком неисправностей.
 
@@ -73,10 +74,11 @@
 | [004](iterations/004-task-registry/report.md) | Единый реестр, отчёты/ревью и ветка isaac | Документация и организация работы |
 | [005](iterations/005-base-sensors/report.md) | vx/vy/wz, GT/noisy odom, RTX RGB/depth, два PhysX-лидара и сшивка, TF/watchdog/reset/стена | Внешняя ROS-проверка passed; диагностическая комната |
 | [006](iterations/006-world-stag/report.md) | Полный собственный USD: 6 стеллажей, 24 STag, 4 стены; настоящие HD15/HD17, lidar, OBB/reset и отрицательный контроль | Внешний ROS-тест passed; PnP принят на фронтальных целях, ограничения ниже |
+| [007](iterations/007-map-baseline/report.md) | Новая sensor DB, 947 узлов, 5 optimized HD17; свежая локализация и 3 Nav2 goals | Passed: собственная карта и один baseline pilot; полные эксперименты впереди |
 
 Код, USD-модель, кадр и логи продублированы на ноутбук; SHA-256 основного USD совпал.
 Последний симулятор после теста завершился штатно (exit=0, OOM=false).
-Собственные odom-noise/lidar-stitching и stag-hd15/hd17 остановлены;
+Собственные odom-noise/lidar-stitching, stag-hd15/hd17, fiducial/slam/baseline остановлены;
 al-isaac-navigation готов к работе. Командные контейнеры не меняли.
 Это снимок состояния: перед следующим запуском проверить фактические контейнеры.
 
@@ -113,42 +115,69 @@ HD17 ID0 не допускается RTAB-Map, контроль 007 обязат
 Исходный noise init_from_gt=true сохранён: начальные GT/noisy x/y [-2,-.5],
 world/odom численно совмещены в начале без публикации идеального world→odom TF.
 
+Итог 007: реальный ненулевой HD17 ID1 проверен с ошибкой 9.27 mm;
+/landmark_detections содержал только IDs 1–5, stale-negative control прошёл
+после 1 s выдержки (exact .3 s threshold отдельно не измерялся).
+Новая online DB 947 nodes/219 landmark links. Bounded WM/cache необходимы:
+первый unlimited прогон вызвал OOM Isaac. Общий профиль: MemoryThr=200,
+map_filter_radius=.15, map_filter_angle=10°, map_cache_loaded_on_init=false.
+Пиковая cgroup memory bounded SLAM 1.81 GiB. Эти overrides явные, общие для режимов.
+diagnostic_updater в своём ROS image обновлён 4.0.6→4.0.7 из-за ABI RTAB-Map 0.23.13.
+
+Полный optimized граф с LTM консолидируется offline **в копию DB** native RTAB-Map
+при остановленном симуляторе (isaac/finalize_mapping.sh); обычный Admin cache
+bounded WM содержал только один landmark. Получены все 5 optimized landmarks,
+median source-face XY error .0174 m. Hashes Data/Link/raw Node poses до/после равны;
+ни GT, ни source poses не читаются optimizer, exporter проекта не изменён.
+
+Принятая pristine карта: isaac/runtime/navigation/maps/isaac-20261109-global.db
+(SHA-256 70a236237a60e4c4294d31ab308f449bdaa1e5be5dab5399742701a8ed6397fe).
+Landmarks: тот же prefix .landmarks.yaml; occupancy .pgm/.yaml — prefix
+isaac-20261109-bounded. В baseline — отдельная DB-копия, pristine hash не изменился.
+Свежий полный Isaac/noise/STag reset, известный начальный /initialpose один раз;
+дальше только Nav2 commands. Три goals SUCCEEDED: GT XY errors 6.24/1.04/8.93 cm,
+estimated XY ≤8.97 cm, yaw ≤.0432 rad. TF/map/odom owners проверены.
+35 C++ +179 Python passed, 1 skip; native finalizer replay/negative controls passed.
+Mapping/localization simulator и RTAB-Map exit0/OOM=false. Nav2 SIGTERM cleanup
+сначала потребовал kill; stop_signal заменён SIGINT, отдельный cleanup test exit0/OOM=false.
+
+Артефакты 007: runtime/navigation/mapping-007 и baseline-007 (CSV/JSON/PNG),
+runtime/navigation/maps (свои DB/YAML/PGM), runtime/evidence/*007*.
+Один mapping pilot дал sampled XY RMSE map estimate .0592 m / noisy odom .3251 m;
+это diagnostic latest-sample сравнение, не APE/RPE и не статистика преимуществ.
+
 ## Что пока не реализовано / не доказано
 
-- Новая карта Isaac, baseline и активная навигация в живом ROS-графе.
-- Точность боковых PnP и отсутствие false positives; живой allowlist/landmark age-gate для RTAB-Map.
-- Метрология ненулевого HD17, экспорт реальных SLAM landmarks вместо source/oracle poses.
+- Active/control в живом ROS-графе, повторные baseline прогоны и парные сравнения.
+- Точность боковых PnP и отсутствие raw false positives; allowlist живого SLAM уже проверен.
 - Runner для Isaac, воспроизводимые эпизоды и сравнительные измерения.
-- Длительная стабильность SLAM/Nav2 со сценой; принятый runtime мира около 172 секунд её не доказывает.
+- Длительная стабильность SLAM/Nav2 со сценой: успешные mapping/localization runtimes около 200/367 секунд её не доказывают.
 - Физика колёс/контактная динамика: текущая база кинематическая, поза тела фиксирована как в Gazebo.
 - Старый get_map.sh содержит заглушки URL/SHA; загрузка исходной базы не готова.
 
-## Следующая итерация: 007 — новая карта и baseline
+## Следующая итерация: 008 — active/control и единый runner
 
-1. Прочитать report/review 006; проверить Git isaac, свои контейнеры и RAM/GPU.
-2. Запустить bash isaac/start_bridge.sh --scene own-world. Собственные детекторы,
-   noise и stitching уже входят в этот запуск. Не создавать их дубликаты старым
-   complete_system.launch.py; подключить только нужные tf_to_fiducial и RTAB-Map.
-3. Сохранить source allowlist HD17 1–5, max_tf_age .3 s и outlier/median gates.
-   Проверить реальную ненулевую HD17-детекцию и /landmark_detections; внесценовые
-   116/202 и ID0 в landmarks не должны попадать. Пустая стена должна прекращать свежие detections.
-4. Создать отдельную новую базу в своём isaac/runtime/navigation/maps, не трогать
-   Gazebo DB или командные карты. Только sensor/noisy odom/настоящие landmarks на вход SLAM.
-   GT и source marker poses используются лишь в проверке/оценке.
-5. Построить карту исходной сцены, проверить map→odom единственного RTAB-Map,
-   экспортировать landmarks из новой базы. Проверить их согласованность и scale;
-   не заменять результат идеальными pose из USD.
-6. Поднять baseline Nav2 на новой карте, пройти заданный маршрут и проверить
-   фактическое достижение целей, столкновения, timestamps/TF и reset всей сессии.
-   Численные критерии и маршрут зафиксировать перед живой приёмкой.
-7. Обновить iterations/007-report/review и реестр; коммит/push isaac и копия ноутбука.
+1. Читать 007 report/review, проверить Git/контейнеры, pristine SHA и общий ресурсный профиль.
+2. Вынести базовый конфиг скоростей .6/.6/.8 и bounded SLAM в общий adapter всех режимов.
+   Baseline использует исходный nav2_params_v2, active/control — исходный active config
+   с предусмотренными scorer/null/loc-layer отличиями. Не менять алгоритмы ради переноса.
+3. Заменить старые Gazebo/home-app пути новых режимов на **новый exported global.landmarks.yaml**,
+   соответствующий pristine Isaac DB. Не брать старый установленный landmarks.yaml или source poses.
+4. Runner: отдельная writable DB-копия на эпизод, полный reset simulator/noise/ROS,
+   одинаковые start/goals/map/seeds, known initial pose один раз, readiness через lifecycle.
+   Добавить явные seeds в bridge/noise если нужны вариации (пока lidar 42/43, noise42).
+5. Логировать clock/GT/noisy/map pose, действия/статусы, recoveries, детекции, TF/RTF,
+   hashes/config/software versions; корректно cancel goal и завершать процессы.
+6. Пройти baseline/active/control хотя бы по одному разу в одинаковых условиях;
+   проверить, что активные plugins реально загрузились и влияют на route/yaw, control
+   соответствует предусмотренному null scorer. Потом переходить к парным сериям/APE/RPE.
+7. Фиксировать критерии до прогонов; update iterations/008, реестр, commit/push isaac и mirror.
 
 ## Последующие этапы
 
 | Порядок | Реализация | Критерий готовности |
 |---|---|---|
-| 007 (следующий) | Своя RTAB-Map карта и baseline | База + landmarks согласованы, маршрут проходит |
-| 008 | Active/control и runner | Общие сцена/карта/start/seeds, чистый reset и сбор артефактов |
+| 008 (следующий) | Active/control и runner | Общие сцена/карта/start/seeds, чистый reset и сбор артефактов |
 | 009 | Парные прогоны и eval | APE/RPE, успех, время, recoveries, детекции, RTF и версии |
 
 Ориентир первоначального планирования: 30–64 часа активной работы, с резервом 5–10 рабочих дней.
