@@ -9,6 +9,83 @@ GPU-рендер и собственная модель Astribot: [резуль�
 Для повторения сборки: `bash isaac/build_navigation.sh`,
 для модульных проверок: `bash isaac/test_navigation.sh`.
 
+## Движение базы и штатные датчики
+
+Отдельная проверочная комната с собственным Astribot:
+
+```bash
+cd ~/projects/Active-Localisation
+bash isaac/start_bridge.sh
+docker logs -f al-isaac-astribot
+```
+
+Готовность — `AL_ASTRIBOT_BRIDGE_READY` и новый `isaac/runtime/bridge/ready.json`,
+после появления настоящих RGB/depth и обоих native PhysX scans. Старт может
+занять около двух минут; `app ready` раньше этого недостаточно.
+По умолчанию runtime работает до 900 секунд wall time после готовности;
+для другой длительности передать `--max-wall-seconds 1800` (`0` без ограничения).
+Скрипт безопасно отказывается запускать второй собственный симулятор.
+
+Публикуются `/clock`, `/odom_gt`, `/torso_rgbd/image_raw`, `/torso_rgbd/camera_info`,
+`/torso_rgbd/depth/image_raw`, `/lidar_front/points`, `/lidar_back/points`,
+`/isaac/usd_pose`, `/isaac/status`. Исходные noise/stitching запущены отдельными
+собственными контейнерами и добавляют `/odom`, `/lidar/points_joined`, TF odom→base_link.
+GT имеет frame world и не публикует идеальный TF. CameraInfo/изображения используют
+torso_rgbd_optical; штатный body-frame torso_rgbd сохраняется для исходного STag.
+
+Скорость базы: x вперёд, y влево (m/s), z вращения против часовой стрелки (rad/s).
+Например, в отдельном SSH-терминале:
+
+```bash
+docker exec -it al-isaac-navigation bash -lc 'source /opt/ros/humble/setup.bash && ros2 topic pub -r 20 /cmd_vel geometry_msgs/msg/Twist "{linear: {x: 0.2, y: 0.0}, angular: {z: 0.0}}"'
+```
+
+Ctrl+C прекращает команды; watchdog останавливает движение через 0.5 s sim time
+или 2 s wall time. Скорости ограничены ±0.6 m/s по x/y и ±0.8 rad/s по yaw.
+Текущая кинематическая модель использует footprint .65×.75 m и guard четырёх стен
+диагностической комнаты. Это не физика колёс и не защита от произвольных meshes.
+
+```bash
+# Проверка внешними ROS-сообщениями; она самостоятельно двигает базу и делает reset.
+bash isaac/verify_bridge.sh
+# Согласованный сброс базы, затем модели шума; время не идёт назад.
+bash isaac/control_bridge.sh reset
+# Штатное завершение, затем дождаться остановки контейнера.
+bash isaac/control_bridge.sh shutdown
+docker wait al-isaac-astribot
+```
+
+Перед новым запуском сохранять нужные доказательства: файлы текущего прогона
+перезаписываются. Приёмка — `isaac/runtime/navigation/bridge-verification/result.json`
+со `status=passed`, кадр рядом; завершение — `isaac/runtime/bridge/result.json`
+со `status=finished`, затем фактические exit/OOM контейнера. Логи — `docker logs`.
+Единственный код выхода Kit недостаточен. Отчёт и ограничения —
+[итерация 005](../iterations/005-base-sensors/report.md).
+
+Заявленные частоты 50 Hz GT, 30 Hz RGB/depth, 10 Hz каждый lidar относятся к sim time.
+Фактический RTF и время участков цикла записываются в `/isaac/status` и итоговый JSON;
+эти частоты не означают работу в реальном времени. Реальная камера использует RTX,
+лидары — native PhysX Generic с исходным паттерном 120×16 и шумом .01 m.
+Знак native zenith адаптирован к исходному elevation Gazebo.
+
+Для крупных сырых изображений все собственные участники используют `fastdds.xml`
+с UDPv4 socket buffers 4 MiB. На проверенном сервере rmem_max/wmem_max уже 4 MiB;
+системные настройки и чужие контейнеры не менялись. CameraInfo reliable совместим
+с исходным STag; RGB/depth и облака сохраняют SensorData QoS.
+
+## Подготовка собственного мира
+
+`world_source.py` проверяет исходный `astribot_hd15_hd17_walls.world`, композицию поз,
+assets/хеши и фактические размеры рисунка STag. Запуск в собственном ROS-контейнере:
+
+```bash
+docker exec al-isaac-navigation python3 /repo/isaac/world_source.py --output /workspace/world-source-manifest.json
+```
+
+Это подготовка следующего этапа; USD-магазин и живое распознавание пока не приняты.
+Подробности, включая расхождение HD15 .06/.064 m, —
+[итерация 006](../iterations/006-world-stag/report.md).
+
 ## Импорт собственной модели
 
 `bash isaac/run_import.sh` запускает отдельный контейнер `al-isaac-robot-import`.

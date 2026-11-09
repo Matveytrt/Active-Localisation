@@ -1,11 +1,6 @@
 name: al-isaac
-services:
-  navigation:
+x-ros-common: &ros-common
     image: al-isaac-navigation:humble
-    build:
-      context: .
-      dockerfile: Dockerfile.navigation
-    container_name: al-isaac-navigation
     network_mode: host
     user: "1005:1005"
     environment:
@@ -13,10 +8,26 @@ services:
       ROS_DOMAIN_ID: "71"
       RMW_IMPLEMENTATION: rmw_fastrtps_cpp
       FASTDDS_BUILTIN_TRANSPORTS: UDPv4
+      FASTRTPS_DEFAULT_PROFILES_FILE: /repo/isaac/fastdds.xml
     volumes:
       - ../:/repo:ro
       - ./runtime/navigation:/workspace:rw
     working_dir: /workspace
+services:
+  navigation:
+    <<: *ros-common
+    build:
+      context: .
+      dockerfile: Dockerfile.navigation
+    container_name: al-isaac-navigation
     stdin_open: true
     tty: true
     command: ["sleep", "infinity"]
+  odom-noise:
+    <<: *ros-common
+    container_name: al-isaac-odom-noise
+    command: ["bash", "-lc", "source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && exec python3 /repo/isaac/nav_support.py --ros-args --params-file /repo/navigation/src/al_odom_noise/config/odom_noise.yaml"]
+  lidar-stitching:
+    <<: *ros-common
+    container_name: al-isaac-lidar-stitching
+    command: ["bash", "-lc", "source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && exec ros2 run lidar_stitching lidar_stitching_node --ros-args --params-file /repo/gazebo/src/lidar_stitching/config/lidar_stitching_params.yaml -p use_sim_time:=true"]
