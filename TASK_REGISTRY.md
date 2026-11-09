@@ -12,7 +12,7 @@
 
 ## Инструкции пользователя и принятые решения
 
-- Из <isaac-runtime-root> берём только Isaac runtime. Не переносим решение команды, её карты или навигационный стек.
+- Используем только установленный Isaac runtime. Не переносим стороннее решение, его карты или навигационный стек.
 - Все тяжёлые операции выполняем на удалённом ПК; ноутбук используется для копии исходников и артефактов.
 - Ветка задачи — **isaac** в [репозитории](https://github.com/Matveytrt/Active-Localisation).
 - Реестр читается перед работой и обновляется после шага; подробный отчёт и ревью каждого шага хранятся в iterations/.
@@ -27,9 +27,9 @@
 
 | Объект | Значение |
 |---|---|
-| SSH | astribot → <remote-user>@<remote-address>; вход по ключу |
-| Сервер | /home/<remote-user>/projects/Active-Localisation |
-| Ноутбук | <local-home>/Documents/AstribotIsaac/Active-Localisation |
+| SSH | Алиас `astribot`; вход по ключу |
+| Сервер | `~/projects/Active-Localisation` |
+| Ноутбук | `Documents/AstribotIsaac/Active-Localisation` внутри домашней папки |
 | Ветка | isaac |
 | Старая ветка | isaac-migration сохранена, больше не используется для новых шагов |
 | База исходного main | 6a21508cf86cc4b21d12d3e320f0f2f6a5357407 |
@@ -40,7 +40,7 @@
 ## Окружение — проверенные факты
 
 - Ubuntu 24.04.4, i5-14400, RTX 5060 Ti 16 GB, драйвер 580.178.04, RAM 16 GB.
-- Docker доступен <remote-user> через группу docker; sudo остаётся парольным.
+- Docker доступен рабочему пользователю через группу docker; sudo остаётся парольным.
 - Официальный Isaac Sim 5.1.0, VERSION 5.1.0-rc.19+release.26219.9c81211b.gl, Python 3.11.13.
 - Образ Isaac закреплён digest sha256:f3563cb2ba0c18af0b2fb321360dcb73a917b899f879e3213623d6bee484fa54.
 - Свой образ navigation: al-isaac-navigation:humble; Compose project al-isaac, контейнер al-isaac-navigation.
@@ -61,7 +61,9 @@
 сейчас означает следующий этап собственного мира и STag, а не повтор импорта 003.
 Разовое выполнение `astribot-8` в 11:23:48 МСК состоялось: **007 принята** как
 собственная новая карта и один настоящий baseline pilot с тремя NavigateToPose goals.
-Следующий этап — 008 (active/control и runner). Новых повторных запусков не назначали.
+По последующей прямой просьбе выполнена **008**: общий runner и paired pilot
+baseline/active/control, все 6 goals succeeded, реальный active effect проверен.
+Следующий этап — 009 (парные серии и APE/RPE). Новых автоматических запусков не назначали.
 Подробная старая точка остановки сохранена как история в отчёте 005;
 она не является текущим списком неисправностей.
 
@@ -75,10 +77,11 @@
 | [005](iterations/005-base-sensors/report.md) | vx/vy/wz, GT/noisy odom, RTX RGB/depth, два PhysX-лидара и сшивка, TF/watchdog/reset/стена | Внешняя ROS-проверка passed; диагностическая комната |
 | [006](iterations/006-world-stag/report.md) | Полный собственный USD: 6 стеллажей, 24 STag, 4 стены; настоящие HD15/HD17, lidar, OBB/reset и отрицательный контроль | Внешний ROS-тест passed; PnP принят на фронтальных целях, ограничения ниже |
 | [007](iterations/007-map-baseline/report.md) | Новая sensor DB, 947 узлов, 5 optimized HD17; свежая локализация и 3 Nav2 goals | Passed: собственная карта и один baseline pilot; полные эксперименты впереди |
+| [008](iterations/008-runner-modes/report.md) | Общий runner, реальные baseline/active/control, seeds/reset/DB copies/артефакты | Passed: один paired pilot, 6/6 goals, active effect проверен; статистика впереди |
 
 Код, USD-модель, кадр и логи продублированы на ноутбук; SHA-256 основного USD совпал.
 Последний симулятор после теста завершился штатно (exit=0, OOM=false).
-Собственные odom-noise/lidar-stitching, stag-hd15/hd17, fiducial/slam/baseline остановлены;
+Собственные odom-noise/lidar-stitching, stag-hd15/hd17, fiducial/slam/baseline/recorder/episode остановлены;
 al-isaac-navigation готов к работе. Командные контейнеры не меняли.
 Это снимок состояния: перед следующим запуском проверить фактические контейнеры.
 
@@ -146,39 +149,55 @@ runtime/navigation/maps (свои DB/YAML/PGM), runtime/evidence/*007*.
 Один mapping pilot дал sampled XY RMSE map estimate .0592 m / noisy odom .3251 m;
 это diagnostic latest-sample сравнение, не APE/RPE и не статистика преимуществ.
 
+Итог 008: новый runner `python3 isaac/run_experiment.py --batch UNIQUE --seed 42`
+последовательно запускает три режима. Один pristine DB SHA и новый exported YAML,
+fixed spawn [-2,-.5,.16,yaw0], один initialpose, noise42/lidars42/43, полный restart,
+отдельные writable DB. Исходные algorithms сохранены; control ровно 3 deltas,
+общий .6/.6/.8 velocity/bounded SLAM. Runtime planner/layer загрузили5 markers;
+control null/disabled проверен ROS parameters. MPPI RNG uncontrolled.
+
+Финальный `runtime/navigation/experiments/pilot-008-b`: 6/6 goals succeeded,
+recoveries0, GT XY max .08097m, estimated XY max .07388m, yaw max .04697rad.
+Navigation RTF baseline/active/control .9641/.9692/.9674. Active/control на общих
+10cm spatial bins x∈[-1,1.5): route y delta .443895m, heading delta .951849rad.
+Active30 реальных accepted HD17 IDs1/2, остальные0. Это подтверждает работу
+objective, но не статистический выигрыш; active wall time выше baseline.
+Все 10 контейнеров каждого run exit0/OOM=false, pristine SHA неизменен.
+
+Первый failed `pilot-008-a` сохранён: goals прошли, cleanup нет. Исправлены
+ROS process wrappers, SIGINT/rclpy shutdown, sender изолирован отдельным контейнером.
+35 C++ +190 Python passed/1skip; отдельно9 seed CLI passed, live lock guard passed.
+TUM finite/unit quaternions/strict timestamps и clock audit passed. Reports,
+configs/hash/version/results/logs/trajectory/PNG сохранены и зеркалируются на ноутбук;
+writable episode DB остаются на удалённом ПК, canonical DB есть в обеих копиях.
+Отдельным commit 3c37481 скрыты детали подключения в текущей документации;
+исторические коммиты этим не очищены. SSH-настройки остаются вне репозитория.
+
 ## Что пока не реализовано / не доказано
 
-- Active/control в живом ROS-графе, повторные baseline прогоны и парные сравнения.
+- Повторные парные серии с разными seeds, APE/RPE и статистика преимуществ.
 - Точность боковых PnP и отсутствие raw false positives; allowlist живого SLAM уже проверен.
-- Runner для Isaac, воспроизводимые эпизоды и сравнительные измерения.
+- Побитовая детерминированность (MPPI RNG не управляется), live timeout fault injection активной Nav2 цели.
 - Длительная стабильность SLAM/Nav2 со сценой: успешные mapping/localization runtimes около 200/367 секунд её не доказывают.
 - Физика колёс/контактная динамика: текущая база кинематическая, поза тела фиксирована как в Gazebo.
 - Старый get_map.sh содержит заглушки URL/SHA; загрузка исходной базы не готова.
 
-## Следующая итерация: 008 — active/control и единый runner
+## Следующая итерация: 009 — парные серии и eval
 
-1. Читать 007 report/review, проверить Git/контейнеры, pristine SHA и общий ресурсный профиль.
-2. Вынести базовый конфиг скоростей .6/.6/.8 и bounded SLAM в общий adapter всех режимов.
-   Baseline использует исходный nav2_params_v2, active/control — исходный active config
-   с предусмотренными scorer/null/loc-layer отличиями. Не менять алгоритмы ради переноса.
-3. Заменить старые Gazebo/home-app пути новых режимов на **новый exported global.landmarks.yaml**,
-   соответствующий pristine Isaac DB. Не брать старый установленный landmarks.yaml или source poses.
-4. Runner: отдельная writable DB-копия на эпизод, полный reset simulator/noise/ROS,
-   одинаковые start/goals/map/seeds, known initial pose один раз, readiness через lifecycle.
-   Добавить явные seeds в bridge/noise если нужны вариации (пока lidar 42/43, noise42).
-5. Логировать clock/GT/noisy/map pose, действия/статусы, recoveries, детекции, TF/RTF,
-   hashes/config/software versions; корректно cancel goal и завершать процессы.
-6. Пройти baseline/active/control хотя бы по одному разу в одинаковых условиях;
-   проверить, что активные plugins реально загрузились и влияют на route/yaw, control
-   соответствует предусмотренному null scorer. Потом переходить к парным сериям/APE/RPE.
-7. Фиксировать критерии до прогонов; update iterations/008, реестр, commit/push isaac и mirror.
+1. Читать 008 report/review; проверить Git/контейнеры, canonical SHA и свободное место.
+2. До runs задать набор seeds/число повторов и сбалансированный порядок трёх режимов,
+   одинаковые scenario/map/start и общий execution profile. Результаты только в новых batch dirs.
+3. Проверить original eval pipeline на реальных TUM, синхронизацию timestamps,
+   общий alignment/reference convention; сохранить метрики APE/RPE без GT в ROS контуре.
+4. Выполнить серии и сравнить success, time, path length, recoveries, detections, RTF,
+   APE/RPE с парными differences и интервалами. Failure/timeout не исключать молча.
+5. Сохранить raw evidence, отчёт/саморевью, обновить реестр, commit/push/mirror isaac.
 
 ## Последующие этапы
 
 | Порядок | Реализация | Критерий готовности |
 |---|---|---|
-| 008 (следующий) | Active/control и runner | Общие сцена/карта/start/seeds, чистый reset и сбор артефактов |
-| 009 | Парные прогоны и eval | APE/RPE, успех, время, recoveries, детекции, RTF и версии |
+| 009 (следующий) | Парные прогоны и eval | APE/RPE, успех, время, recoveries, детекции, RTF и версии |
 
 Ориентир первоначального планирования: 30–64 часа активной работы, с резервом 5–10 рабочих дней.
 Это оценка, не обязательство и не основание останавливать работу. Пересматривать по фактическим результатам.

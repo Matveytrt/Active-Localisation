@@ -3,6 +3,7 @@ import argparse
 import os
 from pathlib import Path
 import yaml
+from ament_index_python.packages import get_package_prefix
 from world_source import audit
 
 parser = argparse.ArgumentParser()
@@ -21,5 +22,6 @@ output.mkdir(exist_ok=True)
 config = output/f'{args.family}.yaml'
 config.write_text(yaml.safe_dump({'/**': {'ros__parameters': params}}))
 print(f'{args.family}: original detector, physical black-square edge {params["marker_size"]} m', flush=True)
-os.execvp('ros2', ['ros2', 'run', 'stag_ros2_enhanced', 'stag_detector_node', '--ros-args',
+executable = str(Path(get_package_prefix('stag_ros2_enhanced'))/'lib/stag_ros2_enhanced/stag_detector_node')
+os.execv(executable, [executable, '--ros-args',
     '-r', '__node:=stag_'+args.family.lower(), '-r', '__ns:=/isaac/stag', '--params-file', str(config)])

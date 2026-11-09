@@ -1,6 +1,7 @@
 """Run the original noise node with an explicit episode-reset service."""
 import rclpy
 from std_srvs.srv import Trigger
+from rclpy.executors import ExternalShutdownException
 from al_odom_noise.odom_noise_node import OdomNoiseNode
 
 
@@ -17,9 +18,11 @@ def main():
     node.create_service(Trigger, "/isaac/reset_noise", reset)
     try:
         rclpy.spin(node)
+    except (KeyboardInterrupt, ExternalShutdownException):
+        pass
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        rclpy.try_shutdown()
 
 
 if __name__ == "__main__":

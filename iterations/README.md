@@ -12,6 +12,7 @@
 | 005 | Движение, камера и два лидара | [report](005-base-sensors/report.md) | [review](005-base-sensors/review.md) |
 | 006 | Собственный мир и реальные STag; ограниченная фронтальная метрология | [report](006-world-stag/report.md) | [review](006-world-stag/review.md) |
 | 007 | Своя карта RTAB-Map и baseline pilot | [report](007-map-baseline/report.md) | [review](007-map-baseline/review.md) |
+| 008 | Общий runner baseline/active/control | [report](008-runner-modes/report.md) | [review](008-runner-modes/review.md) |
 
 Для нового шага создавать NNN-name/report.md и review.md.
 Отчёт: задача, исходное состояние, изменения, команды/артефакты, фактические проверки,

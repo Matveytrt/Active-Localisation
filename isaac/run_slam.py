@@ -6,13 +6,15 @@ import os
 from pathlib import Path
 import yaml
 from ament_index_python.packages import get_package_prefix
+from experiment_config import nav_parameters, SLAM_RESOURCES
 
 parser = argparse.ArgumentParser()
-parser.add_argument('component', choices=('slam', 'fiducial', 'baseline'))
+parser.add_argument('component', choices=('slam', 'fiducial', 'baseline', 'nav', 'recorder'))
 args = parser.parse_args()
 repo = Path(__file__).resolve().parents[1]
-output = Path('/workspace/slam-config')
-output.mkdir(exist_ok=True)
+run_dir = os.environ.get('AL_ISAAC_RUN_DIR')
+output = Path(run_dir)/'config' if run_dir else Path('/workspace/slam-config')
+output.mkdir(parents=True, exist_ok=True)
 mode = os.environ.get('AL_ISAAC_SLAM_MODE', 'mapping')
 assert mode in ('mapping', 'localization')
 remaps = []
@@ -24,8 +26,7 @@ if args.component == 'slam':
     params.update({k: str(v) for k, v in launch[mode+'_params'].items()})
     # Bound working/cache memory on the 16 GiB host. Nodes still go to the
     # database; do not discard raw sensor data or replace the 3-D map with GT.
-    params.update({'Rtabmap/MemoryThr': '200', 'map_filter_radius': .15,
-                   'map_filter_angle': 10., 'map_cache_loaded_on_init': False})
+    params.update(SLAM_RESOURCES)
     db = Path(os.environ['AL_ISAAC_DB']).resolve()
     assert db.is_absolute() and db.is_relative_to('/workspace/maps'), 'Use an own map under /workspace/maps'
     db.parent.mkdir(parents=True, exist_ok=True)
@@ -43,18 +44,20 @@ elif args.component == 'fiducial':
     config = yaml.safe_load(source.read_text())
     config['tf_to_fiducial_node']['ros__parameters']['operation_mode'] = mode
     package, executable, node_name = 'tf_to_fiducial', 'tf_to_fiducial_node', 'tf_to_fiducial_node'
+elif args.component == 'recorder':
+    import sys
+    target = Path(os.environ['AL_ISAAC_RUN_DIR'])
+    os.execv(sys.executable, [sys.executable, '-m', 'al_eval.traj_recorder_node', '--ros-args',
+        '--params-file', str(repo/'navigation/src/al_eval/config/traj_recorder.yaml'),
+        '-p', 'output_dir:='+str(target.parent), '-p', 'run_name:='+target.name,
+        '-p', 'use_sim_time:=true'])
 else:
-    source = repo/'navigation/src/nav2_planner_custom/config/nav2_params_v2.yaml'
-    config = yaml.safe_load(source.read_text())
-    controller = config['controller_server']['ros__parameters']['FollowPath']
-    controller.update(vx_max=.6, vx_min=-.6, vy_max=.6, wz_max=.8)
-    smoother = config['velocity_smoother']['ros__parameters']
-    smoother.update(max_velocity=[.6, .6, .8], min_velocity=[-.6, -.6, -.8])
-    config_path = output/'baseline.yaml'
+    nav_mode = os.environ.get('AL_ISAAC_NAV_MODE', 'baseline')
+    landmarks = os.environ.get('AL_ISAAC_LANDMARKS', '/workspace/maps/isaac-20261109-global.landmarks.yaml')
+    config, provenance = nav_parameters(repo, nav_mode, landmarks)
+    config_path = output/'nav.yaml'
     config_path.write_text(yaml.safe_dump(config))
-    (output/'baseline-provenance.json').write_text(json.dumps({'source': str(source),
-        'sha256': hashlib.sha256(source.read_bytes()).hexdigest(),
-        'overrides': 'MPPI and smoother velocities match the Isaac planar base limits: .6/.6/.8'}, indent=2))
+    (output/'nav-provenance.json').write_text(json.dumps(provenance, indent=2))
     os.execvp('ros2', ['ros2', 'launch', 'nav2_planner_custom', 'navigation_launch.py', 'params_file:='+str(config_path)])
 config_path = output/(args.component+'-'+mode+'.yaml')
 config_path.write_text(yaml.safe_dump(config))

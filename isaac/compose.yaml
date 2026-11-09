@@ -9,6 +9,8 @@ x-ros-common: &ros-common
       RMW_IMPLEMENTATION: rmw_fastrtps_cpp
       FASTDDS_BUILTIN_TRANSPORTS: UDPv4
       FASTRTPS_DEFAULT_PROFILES_FILE: /repo/isaac/fastdds.xml
+      AL_ISAAC_SEED: ${AL_ISAAC_SEED:-42}
+      AL_ISAAC_RUN_DIR: ${AL_ISAAC_RUN_DIR:-}
     volumes:
       - ../:/repo:ro
       - ./runtime/navigation:/workspace:rw
@@ -26,11 +28,11 @@ services:
   odom-noise:
     <<: *ros-common
     container_name: al-isaac-odom-noise
-    command: ["bash", "-lc", "source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && exec python3 /repo/isaac/nav_support.py --ros-args --params-file /repo/navigation/src/al_odom_noise/config/odom_noise.yaml"]
+    command: ["bash", "-lc", "source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && exec python3 /repo/isaac/nav_support.py --ros-args --params-file /repo/navigation/src/al_odom_noise/config/odom_noise.yaml -p seed:=$${AL_ISAAC_SEED}"]
   lidar-stitching:
     <<: *ros-common
     container_name: al-isaac-lidar-stitching
-    command: ["bash", "-lc", "source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && exec ros2 run lidar_stitching lidar_stitching_node --ros-args --params-file /repo/gazebo/src/lidar_stitching/config/lidar_stitching_params.yaml -p use_sim_time:=true"]
+    command: ["bash", "-lc", "source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && exec /workspace/install/lidar_stitching/lib/lidar_stitching/lidar_stitching_node --ros-args --params-file /repo/gazebo/src/lidar_stitching/config/lidar_stitching_params.yaml -p use_sim_time:=true"]
   stag-hd17:
     <<: *ros-common
     profiles: [world]
@@ -65,4 +67,15 @@ services:
     container_name: al-isaac-baseline
     stop_signal: SIGINT
     stop_grace_period: 30s
-    command: ["bash", "-lc", "source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && exec python3 /repo/isaac/run_slam.py baseline"]
+    environment:
+      <<: *ros-environment
+      AL_ISAAC_NAV_MODE: ${AL_ISAAC_NAV_MODE:-baseline}
+      AL_ISAAC_LANDMARKS: ${AL_ISAAC_LANDMARKS:-/workspace/maps/isaac-20261109-global.landmarks.yaml}
+    command: ["bash", "-lc", "source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && exec python3 /repo/isaac/run_slam.py nav"]
+  recorder:
+    <<: *ros-common
+    profiles: [experiment]
+    container_name: al-isaac-recorder
+    stop_signal: SIGINT
+    stop_grace_period: 20s
+    command: ["bash", "-lc", "source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && exec python3 /repo/isaac/run_slam.py recorder"]

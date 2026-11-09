@@ -248,6 +248,36 @@ docker run --rm --name al-isaac-clock-probe --network host \
 Файлы runtime создаются контейнером от root. Код проекта создаётся SSH-пользователем;
 не делать рекурсивный chown каталога команды ради кэшей.
 
+## Единый эксперимент Isaac
+
+Запускать на удалённом ПК из корня репозитория, когда собственные симулятор,
+SLAM и Nav2 остановлены:
+
+```bash
+python3 -u isaac/run_experiment.py --batch UNIQUE_NAME --seed 42
+```
+
+По умолчанию последовательно baseline, active, control. Можно выбрать
+`--modes baseline active control`; порядок не меняет входную карту/start/seeds.
+Runner использует принятую pristine карту 007, исходный `shelves_south_wall`,
+отдельную writable DB на эпизод, полный restart Isaac/ROS и один фиксированный
+initial pose. Общие ограничения скорости и bounded SLAM одинаковы. MPPI RNG
+не управляется, поэтому одинаковые seeds не обещают побитового повтора движения.
+
+Файлы результата: `isaac/runtime/navigation/experiments/UNIQUE_NAME/`;
+DB-копии: `isaac/runtime/navigation/maps/episodes/UNIQUE_NAME/`.
+Lock, checksum, проверка свободного места, занятых собственных контейнеров и отказ
+от перезаписи предшествуют запуску. Чужие контейнеры не используются и не останавливаются.
+После трёх успешных режимов:
+
+```bash
+docker exec al-isaac-navigation bash -lc 'source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && python3 /repo/isaac/analyze_experiment.py /workspace/experiments/UNIQUE_NAME'
+```
+
+Проверка TUM/реальных маршрутов пишет `analysis.json` и `comparison.png`.
+Успешный pilot доказывает работоспособность трёх режимов; парная статистика и
+формальная APE/RPE относятся к следующему этапу.
+
 ## Плановая оценка времени
 
 Предварительная оценка активной работы с отладкой; время ожидания пользователя,

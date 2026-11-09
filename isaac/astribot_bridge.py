@@ -19,7 +19,10 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--max-wall-seconds", type=float, default=900)
 parser.add_argument("--scene", choices=("room", "own-world"), default="room")
 parser.add_argument("--spawn", type=float, nargs=3, metavar=('X', 'Y', 'YAW'))
+parser.add_argument("--seed", type=int, default=42)
 args, _ = parser.parse_known_args()
+if not 0 <= args.seed < 2**32-1:
+    parser.error('seed must be in [0, 2**32-2]')
 repo = Path(__file__).resolve().parents[1]
 out = repo / "isaac/runtime/bridge"
 out.mkdir(parents=True, exist_ok=True)
@@ -168,7 +171,8 @@ try:
     if viewport:
         viewport.updates_enabled = False  # Keep the actual torso render product active.
     beams = {side: beam_directions(specs[side]) for side in ("front", "back")}
-    rngs = {side: np.random.default_rng(seed) for side, seed in (("front", 42), ("back", 43))}
+    sensor_seeds = {'front': args.seed, 'back': args.seed+1}
+    rngs = {side: np.random.default_rng(seed) for side, seed in sensor_seeds.items()}
     fields = [PointField(name=name, offset=4*i, datatype=PointField.FLOAT32, count=1)
               for i, name in enumerate(("x", "y", "z", "intensity"))]
 
@@ -240,7 +244,7 @@ try:
             base.reset()
             update_robot()
             self.episode += 1
-            for side, seed in (("front", 42), ("back", 43)):
+            for side, seed in sensor_seeds.items():
                 rngs[side] = np.random.default_rng(seed)
             response.success, response.message = True, f"episode={self.episode}; clock remains monotonic; reset noise separately"
             return response
@@ -322,6 +326,7 @@ try:
     steps = 0
     due = {"odom": start_sim, "camera": start_sim, "lidar": start_sim, "status": start_sim}
     (out / "ready.json").write_text(json.dumps({"status": "ready", "specs": specs,
+        "seeds": sensor_seeds,
         "scene": args.scene, "spawn": list(spawn),
         "world_validation": scene_manifest.get('usd_validation') if scene_manifest else None,
         "clock_policy": "monotonic across episode resets", "base_height": base_z,
@@ -360,6 +365,7 @@ try:
                     node.publish_lidar(side)
             else:
                 node.status_pub.publish(String(data=json.dumps({"ready": True, "sim_time": node.sim_time,
+                    "seeds": sensor_seeds,
                     "scene": args.scene, "spawn": list(spawn),
                     "world_validation": scene_manifest.get('usd_validation') if scene_manifest else None,
                     "episode": node.episode, "blocked": base.blocked, "pose": base.pose.tolist(), "counts": node.counts,
@@ -370,6 +376,7 @@ try:
                 timing[key] += time.perf_counter()-measured
         time.sleep(max(0., 1/60 - (time.monotonic()-wall)))
     result_path.write_text(json.dumps({"status": "finished", "wall_seconds": time.monotonic()-started,
+        "seeds": sensor_seeds,
         "scene": args.scene, "spawn": list(spawn),
         "world_source_sha256": scene_manifest['source_sha256'] if scene_manifest else None,
         "sim_seconds": world.current_time-start_sim, "counts": node.counts,

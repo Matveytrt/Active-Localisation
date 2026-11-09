@@ -50,8 +50,8 @@ Gazebo-вариант своего проекта сохраняем как ко
 
 | Параметр | Результат |
 |---|---|
-| SSH | astribot → <remote-user>@<remote-address>, вход по ключу проверен |
-| Имя | <remote-host> |
+| SSH | Алиас `astribot`, вход по ключу проверен |
+| Узел | Удалённый ПК |
 | ОС | Ubuntu 24.04.4 LTS, x86_64 |
 | CPU | Intel Core i5-14400, 16 логических CPU |
 | GPU | RTX 5060 Ti, 16311 MiB VRAM |
