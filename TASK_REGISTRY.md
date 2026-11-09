@@ -63,7 +63,9 @@
 собственная новая карта и один настоящий baseline pilot с тремя NavigateToPose goals.
 По последующей прямой просьбе выполнена **008**: общий runner и paired pilot
 baseline/active/control, все 6 goals succeeded, реальный active effect проверен.
-Следующий этап — 009 (парные серии и APE/RPE). Новых автоматических запусков не назначали.
+009 завершена:30 runs исходного протокола, Nav2 90/90 goals, APE/RPE и отдельный
+итоговый отчёт о процессе переноса. Исключения: strict pose89/90, runner28/30;
+подробности ниже. Новых автоматических запусков не назначали.
 Подробная старая точка остановки сохранена как история в отчёте 005;
 она не является текущим списком неисправностей.
 
@@ -78,6 +80,7 @@ baseline/active/control, все 6 goals succeeded, реальный active effec
 | [006](iterations/006-world-stag/report.md) | Полный собственный USD: 6 стеллажей, 24 STag, 4 стены; настоящие HD15/HD17, lidar, OBB/reset и отрицательный контроль | Внешний ROS-тест passed; PnP принят на фронтальных целях, ограничения ниже |
 | [007](iterations/007-map-baseline/report.md) | Новая sensor DB, 947 узлов, 5 optimized HD17; свежая локализация и 3 Nav2 goals | Passed: собственная карта и один baseline pilot; полные эксперименты впереди |
 | [008](iterations/008-runner-modes/report.md) | Общий runner, реальные baseline/active/control, seeds/reset/DB copies/артефакты | Passed: один paired pilot, 6/6 goals, active effect проверен; статистика впереди |
+| [009](iterations/009-reproduction/report.md) | Основной shelves_loop_a, noise×4/×6, seeds42–46, 30 runs, APE/RPE/CI и отчёт о переносе | Завершено: actions90/90, strict pose89/90, runner28/30; исключения сохранены |
 
 Код, USD-модель, кадр и логи продублированы на ноутбук; SHA-256 основного USD совпал.
 Последний симулятор после теста завершился штатно (exit=0, OOM=false).
@@ -173,37 +176,56 @@ writable episode DB остаются на удалённом ПК, canonical DB 
 Отдельным commit 3c37481 скрыты детали подключения в текущей документации;
 исторические коммиты этим не очищены. SSH-настройки остаются вне репозитория.
 
-## Что пока не реализовано / не доказано
+Итог009: серия `reproduction-009`, runtime core commit44d02d0 зафиксирован до
+начала и не менялся (только промежуточные updates реестра). Все30 planned jobs и90
+actions учтены, без selective reruns/tuning. Map/landmark/scenario SHA, live noise
+profiles/seeds/Nav2 configs/plugins, spawn/clock/TF и source provenance проверены.
+GT идёт в исходную модель шума и evaluation, не напрямую в SLAM/Nav2.
+30/30 data/input audits passed, TUM finite/unit/monotone, 100% association;
+evo1.38.0, XY/no align/interpolation .02s/RPE1m, только goal window.
 
-- Повторные парные серии с разными seeds, APE/RPE и статистика преимуществ.
+Навигация90/90 succeeded. Strict pose gate89/90: control×6 seed44, yaw snapshot
+.1665058rad при допуске.10; причина отличия от внутреннего Nav2 check не установлена.
+Runner28/30: второй failed — control×4 seed45, recorder RuntimeError при SIGINT
+**после** конца окна. Файлы/counters/time coverage полны, данные включены в metrics;
+teardown29/30, OOM/kill0. Код записи не меняет алгоритм TrajRecorder: после серии
+добавлена управляемая остановка signal→spin_once→finalize→shutdown, fixture20/20passed.
+Это не выдаётся за повтор30 runs после исправления или30 полностью зелёных gates.
+
+APE RMSE mm mean±std baseline/active/control: ×4 37.96±1.71/34.42±.90/36.12±2.07;
+×6 53.52±4.69/47.60±1.14/51.31±2.78. Active повысил path-with-detection на36.38/40.76
+percentage points против baseline, добавил11.89/11.90s sim time. Active-minus-control
+APE CI×4 пересекает0; RPE×4 active хуже control. Полные paired CI и все counterexamples:
+[evaluation](report/isaac/evaluation.md). Не заявлять универсальное преимущество метода.
+Raw pre-seed bad_db_init flags30/30 сохранены; post-initialpose max errors1.331mm/.000323rad.
+
+Проверки009:35 C++ +208 Python/1skip; original eval31 +2real-evo passed;
+extra3 path metric tests passed; native analytic controls и20 shutdown tests passed.
+[Итоговый PDF](output/pdf/IsaacReproduction.pdf),6 страниц, и
+[editable source](report/isaac/reproduction.md) описывают именно воспроизведение
+робота/сцены/датчиков/карты/протокола, трудности и решения, без настройки личного ПК.
+Исходный Gazebo отчёт не переписывался. Подробный009 report и явное саморевью сохранены.
+Серия/evaluation/logs/controls зеркалируются на ноутбук; mutable DB30 runs остаются
+на удалённом ПК, canonical DB есть в обеих копиях. Runtime вне Git.
+
+## Что остаётся ограничением / расширением задачи
+
+- Обобщение на новые сцены/seeds, абляции ICP и универсальная эффективность active localization.
+- Причина расхождения yaw после Nav2 success в одном stress-run; данные и исходный gate сохранены.
 - Точность боковых PnP и отсутствие raw false positives; allowlist живого SLAM уже проверен.
 - Побитовая детерминированность (MPPI RNG не управляется), live timeout fault injection активной Nav2 цели.
-- Длительная стабильность SLAM/Nav2 со сценой: успешные mapping/localization runtimes около 200/367 секунд её не доказывают.
+- Длительная непрерывная стабильность:30 независимых restart-эпизодов не заменяют один многочасовой runtime.
 - Физика колёс/контактная динамика: текущая база кинематическая, поза тела фиксирована как в Gazebo.
 - Старый get_map.sh содержит заглушки URL/SHA; загрузка исходной базы не готова.
 
-## Следующая итерация: 009 — парные серии и eval
+## Текущая точка завершения
 
-009 запущена по прямой просьбе пользователя. Протокол зафиксирован до runs в
-iterations/009-reproduction/report.md: основной shelves_loop_a, noise×4/×6,
-seeds42–46, 30 runs/90 goals, original eval/evo1.38, без selective reruns/tuning.
-Затем отдельный итоговый отчёт о процессе воспроизведения в Isaac; исходный
-Gazebo отчёт сохраняется, не переписывается. Статус серии ещё не принят.
-
-1. Читать 008 report/review; проверить Git/контейнеры, canonical SHA и свободное место.
-2. До runs задать набор seeds/число повторов и сбалансированный порядок трёх режимов,
-   одинаковые scenario/map/start и общий execution profile. Результаты только в новых batch dirs.
-3. Проверить original eval pipeline на реальных TUM, синхронизацию timestamps,
-   общий alignment/reference convention; сохранить метрики APE/RPE без GT в ROS контуре.
-4. Выполнить серии и сравнить success, time, path length, recoveries, detections, RTF,
-   APE/RPE с парными differences и интервалами. Failure/timeout не исключать молча.
-5. Сохранить raw evidence, отчёт/саморевью, обновить реестр, commit/push/mirror isaac.
-
-## Последующие этапы
-
-| Порядок | Реализация | Критерий готовности |
-|---|---|---|
-| 009 (следующий) | Парные прогоны и eval | APE/RPE, успех, время, recoveries, детекции, RTF и версии |
+Этапы000–009 выполнены в описанных пределах. Задача воспроизведения исходного
+навигационного протокола и отдельный отчёт завершены; исключения не скрыты.
+Новые серии/физика/абляции — отдельные исследования по следующей просьбе пользователя.
+Фактический dataset: `isaac/runtime/navigation/series/reproduction-009/manifest.json`
+и `evaluation/summary.json`. Перед будущим запуском проверить актуальные Git/контейнеры;
+не перезаписывать эту серию и не заменять её неудачные эпизоды новыми.
 
 Ориентир первоначального планирования: 30–64 часа активной работы, с резервом 5–10 рабочих дней.
 Это оценка, не обязательство и не основание останавливать работу. Пересматривать по фактическим результатам.

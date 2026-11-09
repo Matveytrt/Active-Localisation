@@ -95,7 +95,7 @@ Overlays: `/isaac/stag/stag_hd15/detection_image_hd15` и аналогично h
 
 Исходный noise config `init_from_gt=true` сохраняется: GT и noisy odom стартуют
 с исходных x/y. Начальное численное совмещение world/odom не является идеальным
-TF world→odom; такого TF симулятор не публикует. Будущий map→odom — только RTAB-Map.
+TF world→odom; такого TF симулятор не публикует. Map→odom публикует только RTAB-Map.
 SAT-guard учитывает проекции всех 34 ориентированных source boxes; плоский пол
 остаётся отдельным PhysX collider. Физика колёс по-прежнему не моделируется.
 
@@ -104,7 +104,8 @@ SAT-guard учитывает проекции всех 34 ориентирова
 используются только проверкой для оценки, не входят во вход детектора.
 Принимается representative frontal PnP обеих семей, облака, source transforms,
 reset и столкновения. Боковые ориентации IPPE и ложные сырые ID остаются ограничениями;
-полный SLAM ещё не принят. Перед RTAB-Map сохранять исходный allowlist HD17 1–5
+эта проверка отдельно не является приёмкой SLAM (он принят в007, серия выполнена в009).
+Для RTAB-Map сохранять исходный allowlist HD17 1–5
 в tf_to_fiducial: ID 0 не входит в граф, внесценовые 116/202 не должны попадать в landmarks.
 Не запускать старый complete_system.launch.py поверх этих детекторов: он создаст ещё два.
 
@@ -122,7 +123,8 @@ docker exec al-isaac-navigation python3 /repo/isaac/world_source.py --output /wo
 
 [Итерация 007](../iterations/007-map-baseline/report.md): новая карта из настоящих
 сенсоров/noisy odom и 3 успешные NavigateToPose цели в свежей локализации.
-Это один pilot; active/control и статистические эксперименты ещё впереди.
+Это результат007; последующие active/control и основная серия приняты в008/009
+с описанными в реестре ограничениями и исключениями.
 
 На сервере, с новым именем DB для каждого mapping:
 
@@ -277,6 +279,53 @@ docker exec al-isaac-navigation bash -lc 'source /opt/ros/humble/setup.bash && s
 Проверка TUM/реальных маршрутов пишет `analysis.json` и `comparison.png`.
 Успешный pilot доказывает работоспособность трёх режимов; парная статистика и
 формальная APE/RPE относятся к следующему этапу.
+
+## Воспроизведение основной серии
+
+Протокол из исходного Gazebo-отчёта: `shelves_loop_a`, три цели, шум ×4/×6,
+seeds42–46, по5 повторов baseline/active/control, ротация порядка. Всего30 запусков.
+Алгоритмы сохраняются; для Isaac используются собственная карта007, общий профиль
+скоростей/SLAM и один известный initial pose вместо Gazebo startup nudge.
+
+На удалённом ПК с готовыми asset003/006, принятой canonical картой007 и своим image:
+
+```bash
+python3 -u isaac/run_series.py --name UNIQUE_SERIES
+```
+
+Не запускать конкурирующие симуляторы/серии. Каждый эпизод полностью перезапускается,
+получает отдельную DB-копию и проверяемые noise/lidar seeds. Неудачные эпизоды
+сохраняются; режимы не подстраиваются и выборочно не перезапускаются.
+`--complete-scenario` позволяет записать исходы всех целей, даже если одна не прошла
+проверку. Action success и допуск по истинной позе учитываются раздельно.
+
+Результаты серии: `runtime/navigation/series/UNIQUE_SERIES/manifest.json`,
+эпизоды — `runtime/navigation/experiments/UNIQUE_SERIES-k4-s42-baseline/` и аналогичные.
+Для оценки через прежние `eval/run_evo.sh` и `eval/summarize.py`:
+
+```bash
+docker exec al-isaac-navigation /opt/al-eval/bin/python /repo/isaac/evaluate_series.py /workspace/series/UNIQUE_SERIES
+```
+
+Изолированный evaluation venv содержит evo1.38.0; системный Python ROS не заменяется.
+XY, без выравнивания, GT interpolation .02s, RPE1m, окно только выполнения целей.
+Пишутся `evaluation/summary.json`, `summary.md`, `runs.csv`, `paired.png`, исходные evo ZIPs/logs
+внутри эпизодов. Средние/std и парные 95% t-интервалы считаются отдельно по уровням
+шума. Входы/профили/TF initialization/контейнеры/TUM проверяются; пропуски не скрываются.
+Доля пути с наблюдением вычисляется по пройденной дистанции, отдельно от доли времени.
+
+Успешное завершение оценщика означает полноту/валидность учтённых данных, а не
+нулевое число исключений: `passed_jobs`, `strict_pose_goals_passed`,
+`teardown_failures` и action success читаются раздельно. В серии009 Nav2 достиг90/90,
+strict pose89/90, runner28/30; один recorder exit1 после окна не потерял данных.
+Исторические ошибки сохранены. Для новых запусков recorder использует исходный
+TrajRecorder через адаптер управляемой остановки, проверенный20 SIGINT cycles.
+
+Карта — отдельный большой runtime-артефакт, не часть Git. Для точного повтора серии
+нужна принятая DB с указанным в реестре SHA. Новое картирование требует отдельной
+фиксации новой карты и её суммы; отключать checksum-проверку ради запуска не следует.
+Источник метода остаётся в исходном Gazebo-отчёте; процесс переноса описан отдельно
+в `report/isaac/reproduction.md` и итоговом PDF под `output/pdf/`.
 
 ## Плановая оценка времени
 

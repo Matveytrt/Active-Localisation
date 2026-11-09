@@ -47,7 +47,7 @@ elif args.component == 'fiducial':
 elif args.component == 'recorder':
     import sys
     target = Path(os.environ['AL_ISAAC_RUN_DIR'])
-    os.execv(sys.executable, [sys.executable, '-m', 'al_eval.traj_recorder_node', '--ros-args',
+    os.execv(sys.executable, [sys.executable, str(repo/'isaac/run_recorder.py'), '--ros-args',
         '--params-file', str(repo/'navigation/src/al_eval/config/traj_recorder.yaml'),
         '-p', 'output_dir:='+str(target.parent), '-p', 'run_name:='+target.name,
         '-p', 'use_sim_time:=true'])
