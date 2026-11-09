@@ -220,6 +220,22 @@ extra3 path metric tests passed; native analytic controls и20 shutdown tests pa
 
 ## Текущая точка завершения
 
+011: по следующей просьбе записан `demo-011-costmap` — камера + фактическая
+active global costmap Nav2 + план/yaw + live time/path/detections/goals/RTF/XY RMSE/
+recoveries. Источник heatmap — native costmap_raw/GetCostmap, не static map.
+Новый файл: `runtime/navigation/videos/experiment-active-costmap-011.mp4`.
+Готово:21.8s/327frames, 36costmap receptions,27detections,2/2goals,31.19mm live RMSE.
+Пользователю разъяснено: native global map1Hz, LocalizabilityLayer cached по
+size/resolution/origin; движение робота не перекрашивает само поле видимости.
+
+По новой просьбе без отдельного отчёта записывается012: другой длинный маршрут,
+полный shelves_loop_a через оба прохода, active/seed42/noise×4,3 goals.
+Файл `runtime/navigation/videos/experiment-active-long-loop-012.mp4`,
+с теми же native costmap/plan/yaw и live statistics. Готово:53.933s/809frames/15fps,
+1600×900/H264,16.1537m,146detections IDs1–5,3/3goals,82costmap receptions,
+34.09mm live RMSE. Все кадры декодированы, середина просмотрена, копии обоих
+роликов011/012 проверены SHA; отдельный отчёт012 не создаётся по просьбе пользователя.
+
 По отдельной просьбе запущена010 — короткая видеозапись нового active demo
 `demo-010-active` (shelves_south_wall, seed42, noise×4). Слева реальный torso RGB,
 справа occupancy-map и GT overlay; это не часть серии009 и не её замена.
