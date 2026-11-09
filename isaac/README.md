@@ -191,8 +191,8 @@ Vulkan хоста также видит RTX 5060 Ti и поддержку ray tr
 
 ## Копии проекта
 
-- Сервер: `/home/razgulovmatvey/projects/Active-Localisation`.
-- Ноутбук: `C:\Users\matt0\Documents\AstribotIsaac\Active-Localisation`.
+- Сервер: `/home/<remote-user>/projects/Active-Localisation`.
+- Ноутбук: `<local-home>\Documents\AstribotIsaac\Active-Localisation`.
 - GitHub остаётся `origin`. Локальный remote `workstation` указывает на сервер.
 - Основная среда исполнения — сервер. После завершённого изменения сохраняем commit
   на сервере и подтягиваем его на ноутбук: `git fetch workstation`,

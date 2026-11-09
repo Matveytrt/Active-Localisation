@@ -7,9 +7,9 @@
 Обе копии созданы от main `6a21508cf86cc4b21d12d3e320f0f2f6a5357407`,
 рабочая ветка `isaac-migration`.
 
-- SSH: `astribot`, пользователь `razgulovmatvey`.
-- Сервер: `/home/razgulovmatvey/projects/Active-Localisation`.
-- Ноутбук: `C:\Users\matt0\Documents\AstribotIsaac\Active-Localisation`.
+- SSH: `astribot`, пользователь `<remote-user>`.
+- Сервер: `/home/<remote-user>/projects/Active-Localisation`.
+- Ноутбук: `<local-home>\Documents\AstribotIsaac\Active-Localisation`.
 - После пользовательского ввода sudo-пароля пользователь добавлен в группу docker.
 - Используется чистый образ NVIDIA, без workspace и приложения команды.
 

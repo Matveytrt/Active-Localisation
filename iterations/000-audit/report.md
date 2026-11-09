@@ -20,7 +20,7 @@
 STag → RTAB-Map → Nav2 с собственными плагинами активной локализации,
 сравнение baseline / active / control и оценка APE/RPE.
 
-Из /srv/Vkusvill используем только доступный runtime Isaac Sim / Isaac Lab.
+Из <isaac-runtime-root> используем только доступный runtime Isaac Sim / Isaac Lab.
 Навигацию, мир, карты, ROS-мост и стартовые скрипты команды не принимаем за основу.
 Файлы команды были только прочитаны для выяснения способа установки.
 Gazebo-вариант своего проекта сохраняем как контрольный вариант.
@@ -50,8 +50,8 @@ Gazebo-вариант своего проекта сохраняем как ко
 
 | Параметр | Результат |
 |---|---|
-| SSH | astribot → razgulovmatvey@100.98.1.54, вход по ключу проверен |
-| Имя | iakov-B760-GAMING-X |
+| SSH | astribot → <remote-user>@<remote-address>, вход по ключу проверен |
+| Имя | <remote-host> |
 | ОС | Ubuntu 24.04.4 LTS, x86_64 |
 | CPU | Intel Core i5-14400, 16 логических CPU |
 | GPU | RTX 5060 Ti, 16311 MiB VRAM |
@@ -61,7 +61,7 @@ Gazebo-вариант своего проекта сохраняем как ко
 | Диск | около 186 GiB свободно на общем разделе /, /srv, /home |
 | ROS на хосте | /opt/ros отсутствует |
 | Docker | установлен, демон работает, доступ к сокету запрещён текущему пользователю |
-| Группы пользователя | sudo и vkusvill есть; docker отсутствует |
+| Группы пользователя | sudo и external-runtime есть; docker отсутствует |
 | sudo без пароля | недоступен |
 | GPU compute-процессы | nvidia-smi не показал активных compute-процессов при осмотре |
 
@@ -70,17 +70,17 @@ Gazebo-вариант своего проекта сохраняем как ко
 
 Найдены:
 
-- `/srv/Vkusvill/isaaclab_docker/Dockerfile`: FROM nvcr.io/nvidia/isaac-lab:2.3.2,
+- `<isaac-runtime-root>/isaaclab_docker/Dockerfile`: FROM nvcr.io/nvidia/isaac-lab:2.3.2,
   ROS Jazzy, собственная сборка ROS под внутренний Python 3.11.
-- `/srv/Vkusvill/astribot_ws/Astribot-Playground/docker/docker-compose.yml`:
+- `<isaac-runtime-root>/astribot_ws/Astribot-Playground/docker/docker-compose.yml`:
   image `isaac_lab_astribot_ready`, container `isaaclab_astribot_container`.
 - Другой compose ссылается на `isaaclab_astribot_image`. Какой образ реально установлен,
   пока не проверено из-за прав Docker.
 - Исторические логи: App Version 5.1.0, команда запуска через
   `/workspace/isaaclab/_isaac_sim/kit/kit`.
-- `run_isaac.sh` в корне /srv/Vkusvill содержит заметки и фрагменты команд;
+- `run_isaac.sh` в корне <isaac-runtime-root> содержит заметки и фрагменты команд;
   его нельзя считать воспроизводимым стартовым скриптом.
-- Некоторые старые compose используют ~/Vkusvill, хотя данные находятся в /srv/Vkusvill.
+- Некоторые старые compose используют ~/external-runtime, хотя данные находятся в <isaac-runtime-root>.
 
 Версия Isaac Sim 5.1.0 подтверждена историческими логами, а не проверкой текущего образа.
 Запуск на текущем GPU, состояние ROS Bridge и рабочая GUI/streaming-сессия не проверены.
@@ -147,10 +147,10 @@ Isaac Lab нужен как доступный способ получить run
    отдельного контейнера и сохранённый manifest версий.
 
 2. **Изолированное рабочее место.** Предлагаемый путь на сервере:
-   `/home/razgulovmatvey/projects/Active-Localisation`, ветка `isaac-migration`.
+   `/home/<remote-user>/projects/Active-Localisation`, ветка `isaac-migration`.
    Своё имя Compose project, контейнеров, логи, кэши, карты и проверенный свободный
    ROS_DOMAIN_ID. Взять точный commit собственного проекта. Новые файлы в `isaac/`,
-   без монтирования всего workspace команды и без редактирования /srv/Vkusvill.
+   без монтирования всего workspace команды и без редактирования <isaac-runtime-root>.
    Готово: свой navigation собирается со всеми четырьмя новыми пакетами.
 
 3. **Минимальный запуск Isaac.** Пустая сцена, один робот/примитив, ROS Bridge,
@@ -202,7 +202,7 @@ Isaac Lab нужен как доступный способ получить run
 ## Что сейчас мешает следующему этапу
 
 Для Docker inspect и запуска отдельного контейнера требуется действие с sudo:
-например, администратор добавляет пользователя razgulovmatvey в группу docker,
+например, администратор добавляет пользователя <remote-user> в группу docker,
 после чего создаётся новая SSH-сессия. Это даёт широкие права на хосте; альтернативой
 может быть запуск/inspect через sudo в интерактивной сессии пользователя.
 Пароль не записываем в файлы и не передаём в командной строке.

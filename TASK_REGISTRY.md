@@ -12,7 +12,7 @@
 
 ## Инструкции пользователя и принятые решения
 
-- Из /srv/Vkusvill берём только Isaac runtime. Не переносим решение команды, её карты или навигационный стек.
+- Из <isaac-runtime-root> берём только Isaac runtime. Не переносим решение команды, её карты или навигационный стек.
 - Все тяжёлые операции выполняем на удалённом ПК; ноутбук используется для копии исходников и артефактов.
 - Ветка задачи — **isaac** в [репозитории](https://github.com/Matveytrt/Active-Localisation).
 - Реестр читается перед работой и обновляется после шага; подробный отчёт и ревью каждого шага хранятся в iterations/.
@@ -27,9 +27,9 @@
 
 | Объект | Значение |
 |---|---|
-| SSH | astribot → razgulovmatvey@100.98.1.54; вход по ключу |
-| Сервер | /home/razgulovmatvey/projects/Active-Localisation |
-| Ноутбук | C:/Users/matt0/Documents/AstribotIsaac/Active-Localisation |
+| SSH | astribot → <remote-user>@<remote-address>; вход по ключу |
+| Сервер | /home/<remote-user>/projects/Active-Localisation |
+| Ноутбук | <local-home>/Documents/AstribotIsaac/Active-Localisation |
 | Ветка | isaac |
 | Старая ветка | isaac-migration сохранена, больше не используется для новых шагов |
 | База исходного main | 6a21508cf86cc4b21d12d3e320f0f2f6a5357407 |
@@ -40,7 +40,7 @@
 ## Окружение — проверенные факты
 
 - Ubuntu 24.04.4, i5-14400, RTX 5060 Ti 16 GB, драйвер 580.178.04, RAM 16 GB.
-- Docker доступен razgulovmatvey через группу docker; sudo остаётся парольным.
+- Docker доступен <remote-user> через группу docker; sudo остаётся парольным.
 - Официальный Isaac Sim 5.1.0, VERSION 5.1.0-rc.19+release.26219.9c81211b.gl, Python 3.11.13.
 - Образ Isaac закреплён digest sha256:f3563cb2ba0c18af0b2fb321360dcb73a917b899f879e3213623d6bee484fa54.
 - Свой образ navigation: al-isaac-navigation:humble; Compose project al-isaac, контейнер al-isaac-navigation.
