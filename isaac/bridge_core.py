@@ -43,15 +43,20 @@ def integrate(pose, twist, dt):
 
 
 def intersects_box(pose, half_extent, box):
-    """SAT: oriented rectangular robot footprint vs an axis-aligned scene box."""
+    """SAT: robot footprint vs the XY projection of an oriented 3-D box."""
     x, y, yaw = pose
     center, size = box["center"], box["size"]
     delta = np.array([x-center[0], y-center[1]])
     axes = yaw_matrix(yaw)[:2, :2]
-    other = np.array(size[:2]) / 2
-    for direction in (np.array([1., 0.]), np.array([0., 1.]), axes[:, 0], axes[:, 1]):
+    projected = np.asarray(box.get('rotation', np.eye(3)))[:2, :] * (np.asarray(size)/2)
+    directions = [axes[:, 0], axes[:, 1]]
+    for generator in projected.T:
+        length = np.linalg.norm(generator)
+        if length > 1e-9:
+            directions.append(np.array([-generator[1], generator[0]])/length)
+    for direction in directions:
         r1 = np.sum(np.abs(direction @ axes) * half_extent)
-        r2 = np.sum(np.abs(direction) * other)
+        r2 = np.sum(np.abs(direction @ projected))
         if abs(delta @ direction) > r1+r2+1e-9:
             return False
     return True
@@ -60,6 +65,7 @@ def intersects_box(pose, half_extent, box):
 @dataclass
 class PlanarBase:
     boxes: list
+    spawn: tuple = (0., 0., 0.)
     watchdog_sim: float = 0.5
     watchdog_wall: float = 2.0
 
@@ -68,7 +74,7 @@ class PlanarBase:
         self.reset()
 
     def reset(self):
-        self.pose = np.zeros(3)
+        self.pose = np.array(self.spawn, dtype=float)
         self.command = np.zeros(3)
         self.actual = np.zeros(3)
         self.last_sim = self.last_wall = -math.inf

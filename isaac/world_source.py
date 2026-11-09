@@ -116,6 +116,18 @@ def audit(repo=None):
     return result
 
 
+def collision_boxes(manifest):
+    """Exact XY projections are evaluated by the planar SAT guard."""
+    boxes = []
+    for entry in manifest['collisions']:
+        if entry['type'] != 'box':
+            continue
+        transform = np.array(entry['transform'])
+        boxes.append({'name': entry['model']+'/'+entry['link']+'/'+entry['name'],
+            'center': transform[:3, 3].tolist(), 'rotation': transform[:3, :3].tolist(), 'size': entry['size']})
+    return boxes
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--output', type=Path)

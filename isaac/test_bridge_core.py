@@ -67,3 +67,13 @@ def test_physx_zenith_preserves_gazebo_elevation_and_ray_order():
             np.cos(zenith)*np.sin(azimuth), -np.sin(zenith)])
         assert np.allclose(sdk_directions, beam_directions(spec), atol=1e-7)
         assert zenith[0] > 0 and zenith[-1] < 0
+
+
+def test_rotated_thin_wall_and_nonzero_spawn_reset():
+    wall = {'center': [2., 0., 1.], 'size': [3., .1, 2.], 'rotation': yaw_matrix(math.pi/2)}
+    base = PlanarBase([wall], spawn=(-1., -.5, 0.))
+    base.accept([.6, 0, 0], 0, 0)
+    base.step(20, 0, 0)
+    assert base.blocked and 1.61 < base.pose[0] <= 1.625
+    base.reset()
+    assert np.array_equal(base.pose, [-1., -.5, 0.])

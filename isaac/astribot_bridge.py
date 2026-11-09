@@ -17,6 +17,8 @@ import xml.etree.ElementTree as ET
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--max-wall-seconds", type=float, default=900)
+parser.add_argument("--scene", choices=("room", "own-world"), default="room")
+parser.add_argument("--spawn", type=float, nargs=3, metavar=('X', 'Y', 'YAW'))
 args, _ = parser.parse_known_args()
 repo = Path(__file__).resolve().parents[1]
 out = repo / "isaac/runtime/bridge"
@@ -96,7 +98,21 @@ try:
         if prim.IsA(UsdPhysics.Joint):
             prim.SetActive(False)
     root_op = UsdGeom.Xformable(root).AddTransformOp()
-    base = PlanarBase(ROOM_BOXES)
+    scene_manifest = None
+    boxes, spawn = ROOM_BOXES, (0., 0., 0.)
+    if args.scene == 'own-world':
+        from world_usd import build
+        from world_source import collision_boxes
+        scene_path, scene_manifest = build(repo)
+        environment = UsdGeom.Xform.Define(stage, '/World/Environment').GetPrim()
+        environment.GetReferences().AddReference(str(scene_path), '/Environment')
+        boxes = collision_boxes(scene_manifest)
+        spawn = (*scene_manifest['spawn_xyz'][:2], 0.)
+    if args.spawn is not None:
+        spawn = tuple(args.spawn)
+    base = PlanarBase(boxes, spawn=spawn)
+    from bridge_core import intersects_box
+    assert not any(intersects_box(base.pose, base.half_extent, box) for box in boxes), 'Spawn intersects a source collision'
     base_z = .16  # Same base_link height above floor as the Gazebo spawn.
 
     def update_robot():
@@ -107,16 +123,18 @@ try:
 
     update_robot()
     world = World(stage_units_in_meters=1., physics_dt=1/60, rendering_dt=1/60)
-    world.scene.add(FixedCuboid("/World/Floor", name="Floor", position=np.array([0., 0., -.1]),
+    if args.scene == 'room':
+        world.scene.add(FixedCuboid("/World/Floor", name="Floor", position=np.array([0., 0., -.1]),
         scale=np.array([20., 20., .2]), color=np.array([.18, .2, .24])))
-    for box in ROOM_BOXES:
+    for box in (ROOM_BOXES if args.scene == 'room' else []):
         world.scene.add(FixedCuboid("/World/"+box["name"], name=box["name"],
             position=np.array(box["center"]), scale=np.array(box["size"]), color=np.array([.55, .57, .6])))
     # Visual calibration targets are not physical obstacles or STag landmarks.
     cz = base_z + frames["torso_rgbd"][2, 3]
-    for name, xyz, color in (("Red", [2.5, .45, cz], [1., .02, .02]),
+    targets = (("Red", [2.5, .45, cz], [1., .02, .02]),
                               ("Green", [2.5, -.45, cz], [.02, 1., .02]),
-                              ("Blue", [2.5, 0., cz+.45], [.02, .02, 1.])):
+                              ("Blue", [2.5, 0., cz+.45], [.02, .02, 1.]))
+    for name, xyz, color in (targets if args.scene == 'room' else []):
         world.scene.add(VisualCuboid("/World/Target"+name, name="Target"+name,
             position=np.array(xyz), scale=np.array([.02, .22, .22]), color=np.array(color)))
     UsdLux.DomeLight.Define(stage, "/World/Light").CreateIntensityAttr(350)
@@ -304,8 +322,10 @@ try:
     steps = 0
     due = {"odom": start_sim, "camera": start_sim, "lidar": start_sim, "status": start_sim}
     (out / "ready.json").write_text(json.dumps({"status": "ready", "specs": specs,
+        "scene": args.scene, "spawn": list(spawn),
+        "world_validation": scene_manifest.get('usd_validation') if scene_manifest else None,
         "clock_policy": "monotonic across episode resets", "base_height": base_z,
-        "lidar_backend": "Native PhysX Generic Sensor batches", "room_boxes": ROOM_BOXES}, indent=2))
+        "lidar_backend": "Native PhysX Generic Sensor batches", "collision_boxes": boxes}, indent=2))
     print("AL_ASTRIBOT_BRIDGE_READY", flush=True)
     while app.is_running() and not node.stopping:
         wall = time.monotonic()
@@ -340,6 +360,8 @@ try:
                     node.publish_lidar(side)
             else:
                 node.status_pub.publish(String(data=json.dumps({"ready": True, "sim_time": node.sim_time,
+                    "scene": args.scene, "spawn": list(spawn),
+                    "world_validation": scene_manifest.get('usd_validation') if scene_manifest else None,
                     "episode": node.episode, "blocked": base.blocked, "pose": base.pose.tolist(), "counts": node.counts,
                     "rtf": (world.current_time-start_sim)/(time.monotonic()-started),
                     "timing_ms_per_step": {name: value*1000/steps for name, value in timing.items()},
@@ -348,6 +370,8 @@ try:
                 timing[key] += time.perf_counter()-measured
         time.sleep(max(0., 1/60 - (time.monotonic()-wall)))
     result_path.write_text(json.dumps({"status": "finished", "wall_seconds": time.monotonic()-started,
+        "scene": args.scene, "spawn": list(spawn),
+        "world_source_sha256": scene_manifest['source_sha256'] if scene_manifest else None,
         "sim_seconds": world.current_time-start_sim, "counts": node.counts,
         "timing_ms_per_step": {name: value*1000/max(steps, 1) for name, value in timing.items()},
         "model_alignment_error": node.max_model_alignment_error}, indent=2))

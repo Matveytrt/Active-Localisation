@@ -73,7 +73,40 @@ docker wait al-isaac-astribot
 системные настройки и чужие контейнеры не менялись. CameraInfo reliable совместим
 с исходным STag; RGB/depth и облака сохраняют SensorData QoS.
 
-## Подготовка собственного мира
+## Собственный мир и STag
+
+```bash
+bash isaac/start_bridge.sh --scene own-world --max-wall-seconds 1800
+bash isaac/verify_world.sh
+```
+
+Сценарий создаёт `isaac/runtime/world/own_world.usdc` из выбранного исходным launch
+мира `astribot_hd15_hd17_walls.world`. Полные DAE стеллажей, source collision-boxes,
+стены, пол и все 24 исходные PNG сохраняют собственные размеры и позы.
+Штатный spawn — [-2,-.5,.16], yaw=0. Для отдельной диагностики его можно
+переопределить `--spawn X Y YAW` (yaw в радианах). Reset возвращает к выбранному spawn.
+
+Вместе с own-world запускаются `al-isaac-stag-hd15` и `al-isaac-stag-hd17`;
+переключение обратно на room останавливает их, чтобы не дублировать TF.
+Это исходные C++-детекторы с исходными параметрами и измеренными размерами
+чёрных квадратов .064/.08 m. Код алгоритма и error correction не меняются.
+Вход — реальные RGB/CameraInfo, выход — `torso_rgbd→stag_hd15_* / stag_hd17_*`.
+Overlays: `/isaac/stag/stag_hd15/detection_image_hd15` и аналогично hd17.
+
+Исходный noise config `init_from_gt=true` сохраняется: GT и noisy odom стартуют
+с исходных x/y. Начальное численное совмещение world/odom не является идеальным
+TF world→odom; такого TF симулятор не публикует. Будущий map→odom — только RTAB-Map.
+SAT-guard учитывает проекции всех 34 ориентированных source boxes; плоский пол
+остаётся отдельным PhysX collider. Физика колёс по-прежнему не моделируется.
+
+Результат внешней проверки — `isaac/runtime/navigation/world-verification/result.json`;
+рядом реальные кадры, overlays и контрольный кадр пустой стены. Source poses
+используются только проверкой для оценки, не входят во вход детектора.
+Принимается representative frontal PnP обеих семей, облака, source transforms,
+reset и столкновения. Боковые ориентации IPPE и ложные сырые ID остаются ограничениями;
+полный SLAM ещё не принят. Перед RTAB-Map сохранять исходный allowlist HD17 1–5
+в tf_to_fiducial: ID 0 не входит в граф, внесценовые 116/202 не должны попадать в landmarks.
+Не запускать старый complete_system.launch.py поверх этих детекторов: он создаст ещё два.
 
 `world_source.py` проверяет исходный `astribot_hd15_hd17_walls.world`, композицию поз,
 assets/хеши и фактические размеры рисунка STag. Запуск в собственном ROS-контейнере:
@@ -82,8 +115,7 @@ assets/хеши и фактические размеры рисунка STag. З
 docker exec al-isaac-navigation python3 /repo/isaac/world_source.py --output /workspace/world-source-manifest.json
 ```
 
-Это подготовка следующего этапа; USD-магазин и живое распознавание пока не приняты.
-Подробности, включая расхождение HD15 .06/.064 m, —
+Подробные границы приёмки, включая расхождение HD15 .06/.064 m, —
 [итерация 006](../iterations/006-world-stag/report.md).
 
 ## Импорт собственной модели

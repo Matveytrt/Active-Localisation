@@ -31,3 +31,13 @@ services:
     <<: *ros-common
     container_name: al-isaac-lidar-stitching
     command: ["bash", "-lc", "source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && exec ros2 run lidar_stitching lidar_stitching_node --ros-args --params-file /repo/gazebo/src/lidar_stitching/config/lidar_stitching_params.yaml -p use_sim_time:=true"]
+  stag-hd17:
+    <<: *ros-common
+    profiles: [world]
+    container_name: al-isaac-stag-hd17
+    command: ["bash", "-lc", "source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && exec python3 /repo/isaac/run_stag.py HD17"]
+  stag-hd15:
+    <<: *ros-common
+    profiles: [world]
+    container_name: al-isaac-stag-hd15
+    command: ["bash", "-lc", "source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && exec python3 /repo/isaac/run_stag.py HD15"]

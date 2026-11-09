@@ -13,6 +13,11 @@ if docker container inspect al-isaac-astribot >/dev/null 2>&1; then
 fi
 docker compose -f isaac/compose.yaml up -d navigation
 docker compose -f isaac/compose.yaml up -d --force-recreate odom-noise lidar-stitching
+if [[ " $* " == *own-world* ]]; then
+  docker compose -f isaac/compose.yaml --profile world up -d --force-recreate stag-hd15 stag-hd17
+else
+  docker compose -f isaac/compose.yaml --profile world stop stag-hd15 stag-hd17
+fi
 docker run -d --name al-isaac-astribot --user 0:0 --runtime nvidia --gpus all \
   --network host --shm-size 2g -e NVIDIA_DRIVER_CAPABILITIES=all \
   -e ACCEPT_EULA=Y -e PRIVACY_CONSENT=Y -e OMNI_KIT_ALLOW_ROOT=1 \
