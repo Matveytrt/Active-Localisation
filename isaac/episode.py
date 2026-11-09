@@ -2,6 +2,7 @@
 import argparse
 import json
 import math
+import os
 from pathlib import Path
 import time
 import traceback
@@ -16,6 +17,7 @@ from rosgraph_msgs.msg import Clock
 from al_eval.scenario_runner_node import ScenarioRunner
 from al_eval import scenario as sc
 from al_eval.tum import TumWriter, quat_to_yaw
+from experiment_config import noise_parameters
 
 
 class Episode(ScenarioRunner):
@@ -102,13 +104,17 @@ class Episode(ScenarioRunner):
                 self.spin_for(.2)
             self.destroy_client(client)
         self.spin_for(2.)
-        checks = {'noise': self.parameters('odom_noise_node', ['seed']),
+        expected_noise = noise_parameters(Path('/repo'), seed, float(os.environ.get('AL_ISAAC_NOISE_SCALE', '1')))['odom_noise_node']['ros__parameters']
+        noise_keys = ['seed', 'k_xx', 'k_xr', 'k_yy', 'k_yr', 'k_rr', 'k_rt',
+                      'scale_x', 'scale_y', 'scale_yaw', 'yaw_drift_per_m']
+        checks = {'noise': self.parameters('odom_noise_node', noise_keys),
             'planner': self.parameters('planner_server', ['GridBased.plugin'] +
                 ([] if mode == 'baseline' else ['GridBased.scorer', 'GridBased.landmarks_file'])),
             'controller': self.parameters('controller_server', ['FollowPath.vx_max', 'FollowPath.vy_max', 'FollowPath.wz_max']),
             'slam': self.parameters('rtabmap', ['Rtabmap/MemoryThr', 'map_filter_radius', 'map_filter_angle', 'map_cache_loaded_on_init']),
             'tf_owners': [p.node_name for p in self.get_publishers_info_by_topic('/tf')]}
         assert checks['noise']['seed'] == seed, checks
+        assert all(checks['noise'][k] == expected_noise[k] for k in noise_keys), checks['noise']
         if mode != 'baseline':
             checks['layer'] = self.parameters('global_costmap/global_costmap',
                 ['loc_layer.enabled', 'loc_layer.scorer', 'loc_layer.landmarks_file'])
@@ -126,6 +132,8 @@ def main():
     parser.add_argument('--scenario', required=True)
     parser.add_argument('--mode', required=True)
     parser.add_argument('--seed', type=int, required=True)
+    parser.add_argument('--complete-scenario', action='store_true',
+                        help='Record every planned goal even when a preceding goal fails acceptance')
     args = parser.parse_args()
     output = Path(args.output)
     scenario = sc.load_scenario(args.scenario)
@@ -140,6 +148,7 @@ def main():
         node.spin_for(scenario.settle_s)
         sim0 = node.sim_now_s()
         wall0 = time.monotonic()
+        all_checks = True
         for goal in result.goals:
             node.run_goal(goal, scenario.goal_timeout_s)
             truth = node.gt.pose.pose.position
@@ -147,10 +156,16 @@ def main():
             acceptance['goals'].append({'index': goal.index, 'status': goal.status,
                 'gt_xy_error_m': gt_error, 'estimated_xy_error_m': goal.final_xy_error_m,
                 'estimated_yaw_error_rad': goal.final_yaw_error_rad})
-            assert goal.succeeded, goal
-            assert goal.final_xy_error_m <= .15 and goal.final_yaw_error_rad <= .10 and gt_error <= .30, acceptance
+            passed = goal.succeeded and goal.final_xy_error_m is not None and goal.final_yaw_error_rad is not None
+            passed = passed and goal.final_xy_error_m <= .15 and goal.final_yaw_error_rad <= .10 and gt_error <= .30
+            acceptance['goals'][-1]['within_acceptance'] = bool(passed)
+            all_checks = all_checks and passed
+            if not args.complete_scenario:
+                assert passed, acceptance
         acceptance['navigation_rtf'] = (node.sim_now_s()-sim0)/(time.monotonic()-wall0)
-        acceptance['status'] = 'passed'
+        acceptance['status'] = 'passed' if all_checks else 'failed'
+        if not all_checks:
+            acceptance['error'] = 'One or more goals failed action or pose acceptance; all planned goals attempted'
     except BaseException:
         acceptance['status'], acceptance['error'] = 'failed', traceback.format_exc()
         result.error = acceptance['error']

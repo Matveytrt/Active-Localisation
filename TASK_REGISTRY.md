@@ -184,6 +184,12 @@ writable episode DB остаются на удалённом ПК, canonical DB 
 
 ## Следующая итерация: 009 — парные серии и eval
 
+009 запущена по прямой просьбе пользователя. Протокол зафиксирован до runs в
+iterations/009-reproduction/report.md: основной shelves_loop_a, noise×4/×6,
+seeds42–46, 30 runs/90 goals, original eval/evo1.38, без selective reruns/tuning.
+Затем отдельный итоговый отчёт о процессе воспроизведения в Isaac; исходный
+Gazebo отчёт сохраняется, не переписывается. Статус серии ещё не принят.
+
 1. Читать 008 report/review; проверить Git/контейнеры, canonical SHA и свободное место.
 2. До runs задать набор seeds/число повторов и сбалансированный порядок трёх режимов,
    одинаковые scenario/map/start и общий execution profile. Результаты только в новых batch dirs.

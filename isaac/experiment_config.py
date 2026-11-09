@@ -1,11 +1,29 @@
 """Common Isaac execution profile; original algorithm YAMLs remain unchanged."""
 import hashlib
+import math
 from pathlib import Path
 import yaml
 
 MODES = ('baseline', 'active', 'control')
 SLAM_RESOURCES = {'Rtabmap/MemoryThr': '200', 'map_filter_radius': .15,
                   'map_filter_angle': 10., 'map_cache_loaded_on_init': False}
+VARIANCE_KEYS = ('k_xx', 'k_xr', 'k_yy', 'k_yr', 'k_rr', 'k_rt')
+BIAS_KEYS = ('scale_x', 'scale_y', 'scale_yaw', 'yaw_drift_per_m')
+
+
+def noise_parameters(repo, seed, scale):
+    validate_seed(seed)
+    if isinstance(scale, bool) or not math.isfinite(scale) or not 0 < scale <= 20:
+        raise ValueError('Noise scale must be finite in (0,20]')
+    source = Path(repo)/'navigation/src/al_odom_noise/config/odom_noise.yaml'
+    config = yaml.safe_load(source.read_text())
+    params = config['odom_noise_node']['ros__parameters']
+    params['seed'] = seed
+    for key in VARIANCE_KEYS:
+        params[key] *= scale**2
+    for key in BIAS_KEYS:
+        params[key] *= scale
+    return config
 
 
 def sha256(path):

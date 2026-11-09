@@ -10,6 +10,7 @@ x-ros-common: &ros-common
       FASTDDS_BUILTIN_TRANSPORTS: UDPv4
       FASTRTPS_DEFAULT_PROFILES_FILE: /repo/isaac/fastdds.xml
       AL_ISAAC_SEED: ${AL_ISAAC_SEED:-42}
+      AL_ISAAC_NOISE_SCALE: ${AL_ISAAC_NOISE_SCALE:-1}
       AL_ISAAC_RUN_DIR: ${AL_ISAAC_RUN_DIR:-}
     volumes:
       - ../:/repo:ro
@@ -28,7 +29,7 @@ services:
   odom-noise:
     <<: *ros-common
     container_name: al-isaac-odom-noise
-    command: ["bash", "-lc", "source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && exec python3 /repo/isaac/nav_support.py --ros-args --params-file /repo/navigation/src/al_odom_noise/config/odom_noise.yaml -p seed:=$${AL_ISAAC_SEED}"]
+    command: ["bash", "-lc", "source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && exec python3 /repo/isaac/nav_support.py"]
   lidar-stitching:
     <<: *ros-common
     container_name: al-isaac-lidar-stitching
